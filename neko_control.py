@@ -58,6 +58,6 @@ class Controller:
             f.close()
         return result
     def popen(self,cmd):
-        exec_or_not = str(input(f"猫猫尝试运行命令{cmd},是否允许(y/n):"))
+        exec_or_not = str(input(f"猫猫尝试在后台运行命令{cmd},是否允许(y/n):"))
         if exec_or_not == "y":
-            subprocess.Popen(cmd)
+            subprocess.Popen(cmd,shell=True)
