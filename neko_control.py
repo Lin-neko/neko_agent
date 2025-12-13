@@ -10,7 +10,7 @@ class Controller:
     def __init__(self):
         self.is_relative_mode = False 
     
-    def click_at(self, x, y):
+    def click(self, x, y):
         global hwnd
         hwnd = win32gui.WindowFromPoint((x, y))
         if not hwnd:
@@ -38,7 +38,9 @@ class Controller:
             vk = ord(char)
             win32gui.PostMessage(hwnd, win32con.WM_CHAR, vk, 0)
         print(f"尝试向{hwnd}发送{text}")
-    def cmd_exec(self,cmd):
+    
+    def exec(self,cmd):
+        cmd_history = []
         exec_or_not = str(input(f"猫猫尝试运行命令{cmd},是否允许(y/n):"))
         if exec_or_not == "y":
             result = subprocess.run(
@@ -48,6 +50,14 @@ class Controller:
                 text=True,
                 encoding='gbk'
             )
+            cmd_history.append(f"{cmd}:{result}")
         else :
-            return "cmd_exec_refused"
+            cmd_history.append(f"{cmd}:refused")
+        with open("cmd_history.txt","w",encoding='utf-8') as f :
+            f.write(str(cmd_history))
+            f.close()
         return result
+    def popen(self,cmd):
+        exec_or_not = str(input(f"猫猫尝试运行命令{cmd},是否允许(y/n):"))
+        if exec_or_not == "y":
+            subprocess.Popen(cmd)
