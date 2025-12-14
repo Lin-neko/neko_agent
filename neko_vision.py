@@ -13,7 +13,7 @@ class ScreenCapture:
             self.app = QApplication(sys.argv)
         self.line_color = "red" #网格线颜色
         self.line_width = 1 #网格线粗度
-        self.divide = 6 #x等分
+        self.divide = 16 #x等分
     def grab_screen_base64(self):
         screen = self.app.primaryScreen()
         geometry = screen.geometry()
@@ -40,7 +40,7 @@ class ScreenCapture:
 
         buffer = BytesIO()
         pil_img_resized.save(buffer, format="JPEG", quality=95) # 增加 quality 防止压缩过度导致线条模糊
-        # pil_img_resized.save("1.jpg",format="JPEG")
+        pil_img_resized.save("screenshot.jpg",format="JPEG")
         img_str = base64.b64encode(buffer.getvalue()).decode("utf-8")
 
         print("喵喵获取了屏幕截图")

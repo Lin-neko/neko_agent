@@ -1,4 +1,3 @@
-# control.py
 import win32api
 import win32con
 import win32gui
@@ -11,7 +10,6 @@ class Controller:
         self.is_relative_mode = False 
     
     def click(self, x, y):
-        global hwnd
         hwnd = win32gui.WindowFromPoint((x, y))
         if not hwnd:
             print(f"猫猫未找到坐标 ({x}, {y}) 下的窗口句柄喵...")
@@ -33,11 +31,13 @@ class Controller:
         except Exception as e:
             print(f"发送消息点击失败惹: {e}")
 
-    def type_string(self, text):
+    def type_string(self, text,x,y):
+        hwnd = win32gui.WindowFromPoint((x, y))
         for char in text:
             vk = ord(char)
             win32gui.PostMessage(hwnd, win32con.WM_CHAR, vk, 0)
         print(f"尝试向{hwnd}发送{text}")
+    
     
     def exec(self,cmd):
         cmd_history = []
@@ -56,8 +56,8 @@ class Controller:
         with open("cmd_history.txt","w",encoding='utf-8') as f :
             f.write(str(cmd_history))
             f.close()
-        return result
     def popen(self,cmd):
         exec_or_not = str(input(f"猫猫尝试在后台运行命令{cmd},是否允许(y/n):"))
         if exec_or_not == "y":
             subprocess.Popen(cmd,shell=True)
+            return 0
