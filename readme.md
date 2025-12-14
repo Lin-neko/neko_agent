@@ -1,0 +1,77 @@
+## 🐾 项目简介
+
+Neko Agent 是一个开源的基于人工智能的 Windows 操作自动化工具，它能够接收用户的自然语言，将复杂任务分解为一系列精确的、可执行的小步骤，并通过模拟操作来自动完成这些任务，不过目前这个项目只是一个demo，所有操作都在一个命令行窗口里进行，后续会用Pyqt构建一个图形界面的哈(。・ω・。)
+
+特点：
+
+- 可自定义的API
+- 自动解析llm指令并执行
+- 支持多种交互方式（点击、输入文本、执行命令等）
+
+## 🧠 工作原理
+
+Neko Agent 的工作流程如下：
+
+1. 用户通过自然语言给Agent下达任务
+2. Agent 接收当前屏幕截图作为输入
+3. 利用 LLM 分析图像并制定行动计划
+4. 将计划转换成具体的操作指令（如点击坐标、输入文字等，如果要运行命令，统一需要用户同意，后续可能会添加自动批准执行）
+5. 执行动作并与用户交互反馈结果
+6. 循环上述过程直到任务完成
+
+## 🔧 安装指南
+1. 克隆此仓库
+```cmd
+git clone https://github.com/Lin-neko/neko-agent.git
+```
+2. 创建虚拟环境
+```cmd
+python -m venv 虚拟环境名称
+```
+3. 激活虚拟环境并安装依赖
+```cmd
+.\虚拟环境名称\Scripts\activate
+pip install -r requirements.txt
+```
+
+
+## ⚙️ 配置说明
+
+在使用前需要配置以下参数：
+
+- **OpenAI API 密钥**：修改 `main.py` 中的 `api_key` 字段为你自己的密钥
+- **基础 URL**：根据实际使用的模型服务端点设置 `base_url`
+- **模型名称**：根据实际使用的模型名称设置 `model_name` ...反正还有很多
+- **视觉参数**：修改 `neko_vision.py` 里的网格线颜色，网格线粗度，格线划分，缩放倍率
+
+
+
+## 📜 使用方法
+
+运行主程序开始与 Neko Agent 互动：
+
+```cmd
+python main.py
+```
+
+启动后会提示你输入想要执行的任务,下达指令，随后程序会截取屏幕，并发送给 llm 进行分析和操作
+
+## 🛠️ 支持的功能
+
+| 功能 | 描述 |
+|------|------|
+| `click x,y` | 在指定坐标上单击鼠标左键 |
+| `input "text" x,y` | 向指定位置输入文本内容 |
+| `exec/popen "command"` | 请求执行 CMD 命令（需用户审核） |
+| `drag x1,y1 x2,y2` | 从起点拖拽到终点 |
+
+此外还包括消息通知 (`Msg`) 和任务完成标志 (`Act_Finished`, `Task_Finished`)。
+
+## 📁文件结构
+
+- [main.py](file://d:\python\neko_agent\main.py) 是入口文件，控制整体逻辑流程。
+- [neko_vision.ScreenCapture](file://d:\python\neko_agent\neko_vision.py#L6-L45) 负责屏幕捕获及图像预处理。
+- [neko_parser.AgentParser](file://d:\python\neko_agent\neko_parser.py#L2-L76) 解析并执行来自 AI 的指令。
+
+
+> 📌 提示：由于涉及敏感操作权限，在生产环境中部署时请注意安全防护措施！
