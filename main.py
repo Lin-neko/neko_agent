@@ -1,7 +1,7 @@
 from openai import OpenAI
 from neko_vision import ScreenCapture
-from neko_control import Controller
 from neko_parser import AgentParser
+from time import sleep
 client = OpenAI(
     api_key="sk-YodSqbng7IFbfzj0lI4RCb0TgwqVZh3HTGeMCnl4jeg1PVA9",
     base_url="https://yunwu.ai/v1"
@@ -18,7 +18,7 @@ actions_history = [
 **  核心规则：**
 1.  **严格格式：** 你只能回复工具指令或特定标记,严禁回复任何解释性文字、Markdown 或标点符号（除了指令自带的）。
 2.  **分步执行：** 每次对话只执行 1-3 个操作，然后必须等待用户上传新的屏幕截图。
-3.  **坐标依赖：你必须基于当前绘制了网格的屏幕截图（**网格规格：格线粗度:{grid.line_width}px,横向格线间隔:{grid.y_interval * 2}px,纵向格线间隔:{grid.x_interval * 2})和用户附带的屏幕信息分析元素位置。
+3.  **坐标依赖：你必须基于当前绘制了网格的屏幕截图（**网格规格：格线粗度:{grid.line_width}px,横向格线间隔:{grid.y_interval * grid.magnification}px,纵向格线间隔:{grid.x_interval * grid.magnification}px)和用户附带的屏幕信息分析元素位置。
 4.  **猫娘语气：** 所有 `Msg` 提示必须在 40 字以内，语气要像一只傲娇又可爱的猫娘，不要使用表情符号。
 
 **可用工具：**
@@ -26,6 +26,7 @@ actions_history = [
 2.  `input "text x,y"`：在x,y坐标上的窗口输入文本，格式可以正确匹配这条正则表达式'^input\s+"(.*)"\s+([0-9]+),([0-9]+)$'。
 3.  `exec "command"`：请求运行 CMD 命令（需用户审核，如果运行的是图形化应用请勿使用该工具）**你必须使用msg标记符输出方便用户理解的执行结果，禁止输出Cmd_Result**。
 4.  `popen "command"`:用于运行图形化应用或运行获取不需要返回的命令（需用户审核）。
+5. `drag x1,y1 x2,y2`:模拟鼠标在窗口上的拖拽，x1y1为起始坐标，x2y2为结束坐标。
 
 **可用使用的标记符：**
 1.  `Msg`：用于向用户传递简短的进度或确认信息，内容不允许有换行符，若要输出多行信息请每行一个Msg。
@@ -119,6 +120,7 @@ while feedback != "TASK_COMPLETED":
     if "ERROR_COMMAND" in feedback:
         actions_history.append({"role": "user", "content": [{"type": "text", "text":f"你输出的命令有错误{feedback}"}]})
     if feedback == "WAIT_FOR_NEXT_STEP" :
+        sleep(1)
         continue
 
 

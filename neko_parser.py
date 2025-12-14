@@ -10,14 +10,15 @@ class AgentParser:
             'exec': re.compile(r'^exec\s+"(.*)"$'),
             'popen': re.compile(r'^popen\s+"(.*)"$'),
             'finished': re.compile(r'^Act_Finished$'),
-            'task_end': re.compile(r'^Task_Finished$')
+            'task_end': re.compile(r'^Task_Finished$'),
+            'drag' : re.compile(r'^drag\s+([0-9]+),([0-9]+)\s+([0-9]+),([0-9]+)$'),
         }
 
     def parse_and_execute(self, llm_output):
         lines = llm_output.strip().split('\n')
         for line in lines:
             line = line.strip()
-            if not any(keyword in line for keyword in ["click", "input", "exec", "popen", "Msg", "Act_Finished", "Task_Finished"]):
+            if not any(keyword in line for keyword in ["click", "input", "exec", "popen", "Msg", "drag", "Act_Finished", "Task_Finished"]):
                 continue
             
             if not line:
@@ -55,6 +56,12 @@ class AgentParser:
                 match = self.patterns['popen'].match(line)
                 command = match.group(1)
                 self.controller.popen(command)
+
+            # 处理 drag
+            elif self.patterns['drag'].match(line):
+                match = self.patterns['drag'].match(line)
+                x1, y1, x2, y2 = int(match.group(1)), int(match.group(2)), int(match.group(3)), int(match.group(4))
+                self.controller.drag(x1, y1, x2, y2)
 
             # 处理 Act_Finished
             elif self.patterns['finished'].match(line):

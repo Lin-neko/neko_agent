@@ -39,6 +39,43 @@ class Controller:
         print(f"尝试向{hwnd}发送{text}")
     
     
+    def drag(self, current_x, current_y, new_x, new_y):
+        hwnd = win32gui.WindowFromPoint((current_x, current_y))
+        if not hwnd:
+            print(f"未找到坐标 ({current_x}, {current_y}) 下的窗口句柄喵...")
+            return 1
+
+        rect = win32gui.GetWindowRect(hwnd)
+        start_win_x = current_x - rect[0]
+        start_win_y = current_y - rect[1]
+        
+        end_win_x = new_x - rect[0]
+        end_win_y = new_y - rect[1]
+
+        print(f"向窗口句柄 {hex(hwnd)} 发送拖动消息")
+        print(f"起始相对坐标: ({start_win_x}, {start_win_y}) -> 目标相对坐标: ({end_win_x}, {end_win_y})")
+
+        try:
+            start_position = win32api.MAKELONG(start_win_x, start_win_y)
+            win32gui.PostMessage(hwnd, win32con.WM_LBUTTONDOWN, win32con.MK_LBUTTON, start_position)
+            time.sleep(0.1)
+            
+            steps = 20
+            for i in range(steps + 1):
+                intermediate_x = start_win_x + (end_win_x - start_win_x) * i // steps
+                intermediate_y = start_win_y + (end_win_y - start_win_y) * i // steps
+                intermediate_position = win32api.MAKELONG(intermediate_x, intermediate_y)
+                win32gui.PostMessage(hwnd, win32con.WM_MOUSEMOVE, win32con.MK_LBUTTON, intermediate_position)
+                time.sleep(0.01)
+
+            end_position = win32api.MAKELONG(end_win_x, end_win_y)
+            win32gui.PostMessage(hwnd, win32con.WM_LBUTTONUP, 0, end_position)
+            
+            return 0
+
+        except Exception as e:
+            print(f"发送消息拖动失败惹: {e}")
+            return 1
     def exec(self,cmd):
         cmd_history = []
         exec_or_not = str(input(f"猫猫尝试运行命令{cmd},是否允许(y/n):"))
@@ -56,6 +93,7 @@ class Controller:
         with open("cmd_history.txt","w",encoding='utf-8') as f :
             f.write(str(cmd_history))
             f.close()
+        return 0
     def popen(self,cmd):
         exec_or_not = str(input(f"猫猫尝试在后台运行命令{cmd},是否允许(y/n):"))
         if exec_or_not == "y":

@@ -1,7 +1,5 @@
 import sys
 from PyQt6.QtWidgets import QApplication
-from PyQt6.QtGui import QPixmap
-from PyQt6.QtCore import Qt
 import base64
 from io import BytesIO
 from PIL import Image, ImageDraw
@@ -13,7 +11,8 @@ class ScreenCapture:
             self.app = QApplication(sys.argv)
         self.line_color = "red" #网格线颜色
         self.line_width = 1 #网格线粗度
-        self.divide = 16 #x等分
+        self.divide = 14 #x等分 划分越多 Agent可能越容易判断坐标 但是过多的划分反而容易出现误判
+        self.magnification = 3 #缩小倍率 高分屏可以填大一点 节省 token
     def grab_screen_base64(self):
         screen = self.app.primaryScreen()
         geometry = screen.geometry()
@@ -24,8 +23,8 @@ class ScreenCapture:
             pil_img = pil_img.convert('RGB')
         # 缩小截图节省token
         original_width, original_height = pil_img.size
-        new_width = original_width // 2
-        new_height = original_height // 2
+        new_width = int(original_width // self.magnification)
+        new_height = int(original_height // self.magnification)
         pil_img_resized = pil_img.resize((new_width, new_height), Image.LANCZOS)
 
         # 绘制网格线方便AI定位坐标
