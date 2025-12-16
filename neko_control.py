@@ -99,3 +99,10 @@ class Controller:
         if exec_or_not == "y":
             subprocess.Popen(cmd,shell=True)
             return 0
+        else :
+            cmd_history = []
+            cmd_history.append(f"{cmd}:refused")
+            with open("cmd_history.txt","w",encoding='utf-8') as f :
+                f.write(str(cmd_history))
+                f.close()
+                return 1

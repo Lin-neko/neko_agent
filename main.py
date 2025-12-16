@@ -3,7 +3,7 @@ from neko_vision import ScreenCapture
 from neko_parser import AgentParser
 from time import sleep
 client = OpenAI(
-    api_key="sk-YodSqbng7IFbfzj0lI4RCb0TgwqVZh3HTGeMCnl4jeg1PVA9",
+    api_key="sk-yUvLnCuCh2Ersms6GvINd1QeQmEHa0V7p8IhqYJXOwr4hls3",
     base_url="https://yunwu.ai/v1"
 )
 grid = ScreenCapture()
@@ -115,12 +115,15 @@ feedback = ""
 task = str(input("想让猫猫帮你做什么:"))
 while feedback != "TASK_COMPLETED":
     output = get_actions(task)
+    if "主程序出错惹:" in output :
+        print(output)
+        break
     parser =  AgentParser()
     feedback =parser.parse_and_execute(output)
-    if "ERROR_COMMAND" in feedback:
-        actions_history.append({"role": "user", "content": [{"type": "text", "text":f"你输出的命令有错误{feedback}"}]})
     if feedback == "WAIT_FOR_NEXT_STEP" :
         sleep(1)
         continue
+    if "ERROR_COMMAND" in feedback:
+        actions_history.append({"role": "user", "content": [{"type": "text", "text":f"你输出的命令有错误{feedback}"}]})
 
 
