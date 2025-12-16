@@ -69,9 +69,10 @@ python main.py
 
 ## 📁文件结构
 
-- [main.py](file://d:\python\neko_agent\main.py) 是入口文件，控制整体逻辑流程。
-- [neko_vision.ScreenCapture](file://d:\python\neko_agent\neko_vision.py#L6-L45) 负责屏幕捕获及图像预处理。
-- [neko_parser.AgentParser](file://d:\python\neko_agent\neko_parser.py#L2-L76) 解析并执行来自 AI 的指令。
+- [main.py]是入口文件，控制整体逻辑流程。
+- [neko_vision.ScreenCapture] 负责屏幕捕获及图像预处理。
+- [neko_parser.AgentParser]解析并执行来自 AI 的指令。
+- [OCR.py]OCR辅助定位
 
 
 > 📌 提示：由于涉及敏感操作权限，在生产环境中部署时请注意安全防护措施！
