@@ -11,11 +11,10 @@ class ScreenCapture:
             self.app = QApplication(sys.argv)
         self.line_color = "red" #网格线颜色
         self.line_width = 1 #网格线粗度
-        self.divide = 14 #x等分 划分越多 Agent可能越容易判断坐标 但是过多的划分反而容易出现误判
+        self.divide = 16 #x等分 划分越多 Agent可能越容易判断坐标 但是过多的划分反而容易出现误判
         self.magnification = 3 #缩小倍率 高分屏可以填大一点 节省 token
-    def grab_screen_base64(self):
+    def grab_screen_base64(self,debug=0):
         screen = self.app.primaryScreen()
-        geometry = screen.geometry()
         pixmap = screen.grabWindow() 
         
         pil_img = Image.fromqimage(pixmap.toImage())
@@ -39,7 +38,8 @@ class ScreenCapture:
 
         buffer = BytesIO()
         pil_img_resized.save(buffer, format="JPEG", quality=95) # 增加 quality 防止压缩过度导致线条模糊
-        pil_img_resized.save("screenshot.jpg",format="JPEG")
+        if debug == 1 :
+            pil_img_resized.save("screenshot.jpg",format="JPEG")
         img_str = base64.b64encode(buffer.getvalue()).decode("utf-8")
 
         print("喵喵获取了屏幕截图")
@@ -47,4 +47,4 @@ class ScreenCapture:
 
 #调试网格时使用
 # a= ScreenCapture()
-# a.grab_screen_base64()
+# a.grab_screen_base64(1)
