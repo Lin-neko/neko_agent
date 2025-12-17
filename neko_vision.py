@@ -3,6 +3,8 @@ from PyQt6.QtWidgets import QApplication
 import base64
 from io import BytesIO
 from PIL import Image, ImageDraw
+from wechat_ocr.ocr_manager import OcrManager, OCR_MAX_TASK_ID
+
 
 class ScreenCapture:
     def __init__(self):
@@ -20,6 +22,7 @@ class ScreenCapture:
         pil_img = Image.fromqimage(pixmap.toImage())
         if pil_img.mode in ('RGBA', 'LA', 'P'):
             pil_img = pil_img.convert('RGB')
+        pil_img.save("OCR.jpg",format="JPEG")
         # 缩小截图节省token
         original_width, original_height = pil_img.size
         new_width = int(original_width // self.magnification)
@@ -44,7 +47,37 @@ class ScreenCapture:
 
         print("喵喵获取了屏幕截图")
         return img_str, (new_width, new_height,original_width, original_height)
+    
+    
+
+    def OCR(self) :
+        def ocr_result_callback(img_path: str, results: dict):
+            global result
+            result = results
+        ocr_manager = OcrManager(r'.\OCR')
+        ocr_manager.SetExePath(r'.\OCR\WeChatOCR\WeChatOCR.exe')
+        ocr_manager.SetUsrLibDir(r'.\OCR')
+        ocr_manager.SetOcrResultCallback(ocr_result_callback)
+        ocr_manager.StartWeChatOCR()
+        ocr_manager.DoOCRTask(r'OCR.jpg')
+        while ocr_manager.m_task_id.qsize() != OCR_MAX_TASK_ID:
+            pass
+        ocr_manager.KillWeChatOCR()
+
+        #格式化输出
+        OCR_result = []
+        for primary_item in result['ocrResult']:
+            OCR_result.append(primary_item['text'])
+
+        return OCR_result
+        '''for primary_item in result['ocrResult']:
+            location_file.write(str(primary_item['location']['left'])+'\n')
+            location_file.write(str(primary_item['location']['top'])+'\n')
+            location_file.write(str(primary_item['location']['right'])+'\n')
+            location_file.write(str(primary_item['location']['bottom'])+'\n')'''
+
 
 #调试网格时使用
 # a= ScreenCapture()
-# a.grab_screen_base64(1)
+# a.grab_screen_base64()
+# print(a.OCR())
