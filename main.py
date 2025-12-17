@@ -3,11 +3,11 @@ from neko_vision import ScreenCapture
 from neko_parser import AgentParser
 from time import sleep
 client = OpenAI(
-    api_key="sk-yUvLnCuCh2Ersms6GvINd1QeQmEHa0V7p8IhqYJXOwr4hls3",
+    api_key="sk-0HpO05A58EBB7fhnU3rt9qZRuNCQv2SR3Y39pn2Q2qAT8FAF",
     base_url="https://yunwu.ai/v1"
 )
 grid = ScreenCapture()
-temp_shot = grid.grab_screen_base64()
+temp_shot = grid.grab_screen_base64(log=False)
 #清除命令行缓存
 with open ('cmd_history.txt', 'w', encoding='utf-8') as f:
     pass
@@ -18,7 +18,7 @@ actions_history = [
 **  核心规则：**
 1.  **严格格式：** 你只能回复工具指令或特定标记,严禁回复任何解释性文字、Markdown 或标点符号（除了指令自带的）。
 2.  **分步执行：** 每次对话只执行 1-3 个操作，然后必须等待用户上传新的屏幕截图。
-3.  **坐标依赖：你必须基于当前绘制了网格的屏幕截图（**网格规格：格线粗度:{grid.line_width}px,横向格线间隔:{grid.y_interval * grid.magnification}px,纵向格线间隔:{grid.x_interval * grid.magnification}px)和用户附带的屏幕信息分析元素位置。
+3.  **坐标依赖：你必须基于当前绘制了网格的屏幕截图（**网格规格：格线粗度:{grid.line_width}px,横向格线间隔:{grid.y_interval * grid.magnification}px,纵向格线间隔:{grid.x_interval * grid.magnification}px)和用户附带的屏幕信息与屏幕OCR识别结果析元素位置。
 4.  **猫娘语气：** 所有 `Msg` 提示必须在 40 字以内，语气要像一只傲娇又可爱的猫娘，不要使用表情符号。
 
 **可用工具：**
@@ -37,7 +37,7 @@ actions_history = [
 示例：
 用户输入: 关机
 Agent :
-cmd_exec "shutdown /p"
+exec "shutdown /p"
 
 #假设用户阻止了你
 
@@ -54,18 +54,16 @@ cmd_exec "shutdown /p"
 用户输入：帮我打开浏览器，并搜索新闻
 Agent返回:
 
-Msg - 我找到了浏览器
-click 400,299
-click 400,299
-#这里假设浏览器快捷方式的坐标然后你双击了它，注意，正式回复中不允许出现注释
+Msg - 尝试使用bing搜索今日新闻
+#这里遵循命令行优先原则，使用start链接的方式打开浏览器，正式回复中不允许出现注释
+exec "start https://cn.bing.com/search?q=今日新闻"
 Msg - 我不知道当前浏览器窗口是否打开，再次获取截图确认
 Act_Finished
 
 #用户此时又上传了截图
-Msg - 打开了，我可以继续操作
-click 100,200 #假设浏览器搜索栏在这里，你点击了它
-input "新闻"
-Msg - 我搜索了新闻，我需要确认一下是否真的到达了新闻界面
+Msg - 打开了，我可以继续操作,查看第一条结果
+click 319,548 #你通过OCR的坐标信息找到了第一条结果按钮并点击了它
+Msg - 我点击了第一条结果，我需要确认一下是否真的到达了新闻界面
 Act_Finished
 
 #用户上传截图，假设已经到了新闻界面
@@ -79,7 +77,8 @@ def get_actions(prompt):
     screen = ScreenCapture()
     raw = screen.grab_screen_base64()
     image64,scr_info = raw
-    
+    print("调用ocr")
+    OCR_info = screen.OCR()
     info_dict = {"physical_screen_width":scr_info[2], 
         "physical_screen_height":scr_info[3] ,
     }
@@ -89,7 +88,7 @@ def get_actions(prompt):
     actions_history.append({
         "role": "user",
         "content": [
-            {"type": "text", "text": prompt + f"\n当前屏幕信息:{info_dict}\n命令执行历史:{cmd_history}"},
+            {"type": "text", "text": prompt + f"\n当前屏幕信息:{info_dict}\n命令执行历史:{cmd_history}" + "OCR结果格式:[{'内容1': (x坐标, y坐标)},{'内容2': (x坐标, y坐标)}]\n" + f"OCR信息:{OCR_info}"},
             {
                 "type": "image_url",
                 "image_url": {

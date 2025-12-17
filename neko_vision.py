@@ -8,14 +8,15 @@ from wechat_ocr.ocr_manager import OcrManager, OCR_MAX_TASK_ID
 
 class ScreenCapture:
     def __init__(self):
-        self.app = QApplication.instance()
-        if not self.app:
+        if not QApplication.instance():
             self.app = QApplication(sys.argv)
+        else:
+            self.app = QApplication.instance()
         self.line_color = "red" #网格线颜色
         self.line_width = 1 #网格线粗度
         self.divide = 16 #x等分 划分越多 Agent可能越容易判断坐标 但是过多的划分反而容易出现误判
         self.magnification = 3 #缩小倍率 高分屏可以填大一点 节省 token
-    def grab_screen_base64(self,debug=0):
+    def grab_screen_base64(self,debug=0,log=True):
         screen = self.app.primaryScreen()
         pixmap = screen.grabWindow() 
         
@@ -44,8 +45,8 @@ class ScreenCapture:
         if debug == 1 :
             pil_img_resized.save("screenshot.jpg",format="JPEG")
         img_str = base64.b64encode(buffer.getvalue()).decode("utf-8")
-
-        print("喵喵获取了屏幕截图")
+        if log == True :
+            print("喵喵获取了屏幕截图")
         return img_str, (new_width, new_height,original_width, original_height)
     
     
@@ -67,17 +68,13 @@ class ScreenCapture:
         #格式化输出
         OCR_result = []
         for primary_item in result['ocrResult']:
-            OCR_result.append(primary_item['text'])
-
+            x = ( int(primary_item['location']['left']) + int(primary_item['location']['right']) ) / 2
+            y = ( int(primary_item['location']['top']) + int(primary_item['location']['bottom']) ) / 2
+            OCR_result.append({primary_item['text']: (x, y)})
         return OCR_result
-        '''for primary_item in result['ocrResult']:
-            location_file.write(str(primary_item['location']['left'])+'\n')
-            location_file.write(str(primary_item['location']['top'])+'\n')
-            location_file.write(str(primary_item['location']['right'])+'\n')
-            location_file.write(str(primary_item['location']['bottom'])+'\n')'''
 
 
 #调试网格时使用
-# a= ScreenCapture()
-# a.grab_screen_base64()
-# print(a.OCR())
+a= ScreenCapture()
+# a.grab_screen_base64(1)
+print(a.OCR())

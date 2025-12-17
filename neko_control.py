@@ -6,9 +6,6 @@ import subprocess
 
 
 class Controller:
-    def __init__(self):
-        self.is_relative_mode = False 
-    
     def click(self, x, y):
         hwnd = win32gui.WindowFromPoint((x, y))
         if not hwnd:
