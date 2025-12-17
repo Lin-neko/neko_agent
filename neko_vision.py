@@ -75,6 +75,6 @@ class ScreenCapture:
 
 
 #调试网格时使用
-a= ScreenCapture()
+# a= ScreenCapture()
 # a.grab_screen_base64(1)
-print(a.OCR())
+# print(a.OCR())
