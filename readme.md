@@ -13,7 +13,7 @@ Neko Agent 是一个开源的基于人工智能的 Windows 操作自动化工具
 Neko Agent 的工作流程如下：
 
 1. 用户通过自然语言给Agent下达任务
-2. Agent 接收当前屏幕截图作为输入
+2. Agent 接收当前屏幕截图与屏幕OCR结果作为输入
 3. 利用 LLM 分析图像并制定行动计划
 4. 将计划转换成具体的操作指令（如点击坐标、输入文字等，如果要运行命令，统一需要用户同意，后续可能会添加自动批准执行）
 5. 执行动作并与用户交互反馈结果
@@ -51,7 +51,7 @@ pip install -r requirements.txt
 运行主程序开始与 Neko Agent 互动：
 
 ```cmd
-python main.py
+(venv)python main.py
 ```
 
 启动后会提示你输入想要执行的任务,下达指令，随后程序会截取屏幕，并发送给 llm 进行分析和操作
@@ -63,20 +63,16 @@ python main.py
 | `click x,y` | 在指定坐标上单击鼠标左键 |
 | `input "text" x,y` | 向指定位置输入文本内容 |
 | `exec/popen "command"` | 请求执行 CMD 命令（需用户审核） |
+| `file_read "path_to_file"` | 读取文件（需用户审核） |
+| `file_write "path_to_file" "data"` | 向文件末尾追加数据（需用户审核）|
 | `drag x1,y1 x2,y2` | 从起点拖拽到终点 |
 
 
 ## 📁文件结构
 
-<<<<<<< HEAD
 - [main.py]是入口文件，控制整体逻辑流程。
-- [neko_vision.ScreenCapture] 负责屏幕捕获、OCR及图像预处理。
+- [neko_vision.ScreenCapture] 负责屏幕捕获、OCR识别及图像预处理。
 - [neko_parser.AgentParser]解析并执行来自 AI 的指令。
-=======
-- **main.py**入口文件，控制整体逻辑流程。
-- **neko_vision.ScreenCapture**负责屏幕捕获及图像预处理。
-- **neko_parser.AgentParser**解析并执行来自 AI 的指令。
->>>>>>> fd243a52d843374da64525e2ead07d6a5af4e134
 
 
 > 📌 提示：由于涉及敏感操作权限，在生产环境中部署时请注意安全防护措施！
