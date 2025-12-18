@@ -103,3 +103,27 @@ class Controller:
                 f.write(str(cmd_history))
                 f.close()
                 return 1
+
+    def file_write(self, file_path, content):
+        try:
+            with open(file_path, 'a', encoding='utf-8') as f:
+                f.write(content)
+            print(f"内容已成功追加到文件: {file_path}")
+            return 0
+        except Exception as e:
+            print(f"追加内容到文件失败惹: {e}")
+            return 1
+
+    def file_read(self, file_path):
+        read_or_not = str(input(f"猫猫尝试读取文件{file_path},是否允许(y/n)"))
+        if read_or_not == "y" : 
+            try :
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                return content
+            except FileNotFoundError:
+                return "[system]no such a file"
+            except Exception as e:
+                return f"[system]Error:{e}"
+        else :
+            return "[system]permission denied"
