@@ -56,7 +56,7 @@ python main.py
 
 启动后会提示你输入想要执行的任务,下达指令，随后程序会截取屏幕，并发送给 llm 进行分析和操作
 
-## 🛠️ 支持的功能
+## 🛠️ Agent可以使用的工具
 
 | 功能 | 描述 |
 |------|------|
@@ -65,13 +65,18 @@ python main.py
 | `exec/popen "command"` | 请求执行 CMD 命令（需用户审核） |
 | `drag x1,y1 x2,y2` | 从起点拖拽到终点 |
 
-此外还包括消息通知 (`Msg`) 和任务完成标志 (`Act_Finished`, `Task_Finished`)。
 
 ## 📁文件结构
 
+<<<<<<< HEAD
 - [main.py]是入口文件，控制整体逻辑流程。
 - [neko_vision.ScreenCapture] 负责屏幕捕获、OCR及图像预处理。
 - [neko_parser.AgentParser]解析并执行来自 AI 的指令。
+=======
+- **main.py**入口文件，控制整体逻辑流程。
+- **neko_vision.ScreenCapture**负责屏幕捕获及图像预处理。
+- **neko_parser.AgentParser**解析并执行来自 AI 的指令。
+>>>>>>> fd243a52d843374da64525e2ead07d6a5af4e134
 
 
 > 📌 提示：由于涉及敏感操作权限，在生产环境中部署时请注意安全防护措施！
