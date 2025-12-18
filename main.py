@@ -3,7 +3,7 @@ from neko_vision import ScreenCapture
 from neko_parser import AgentParser
 from time import sleep
 client = OpenAI(
-    api_key="sk-0HpO05A58EBB7fhnU3rt9qZRuNCQv2SR3Y39pn2Q2qAT8FAF",
+    api_key="sk-B27Pk4kf1lzqYLdt22ISsyyiMVfjUfIgOWBUvWenAuDxN3cC",
     base_url="https://yunwu.ai/v1"
 )
 grid = ScreenCapture()
@@ -72,12 +72,22 @@ Task_Finished
 """}
 ]
 
+def clear_ocr_cache():
+    global actions_history
+    for item in actions_history:
+        if "content" in item and isinstance(item["content"], list):
+            for sub_item in item["content"]:
+                if "type" in sub_item and sub_item["type"] == "text" and "text" in sub_item:
+                    if "[OCR信息]:" in sub_item["text"]:
+                        parts = sub_item["text"].split("[OCR信息]:", 1)
+                        sub_item["text"] = parts[0] + "[OCR信息]:"
+
 def get_actions(prompt):
     global actions_history
+    clear_ocr_cache()
     screen = ScreenCapture()
     raw = screen.grab_screen_base64()
     image64,scr_info = raw
-    print("调用ocr")
     OCR_info = screen.OCR()
     info_dict = {"physical_screen_width":scr_info[2], 
         "physical_screen_height":scr_info[3] ,
@@ -88,7 +98,7 @@ def get_actions(prompt):
     actions_history.append({
         "role": "user",
         "content": [
-            {"type": "text", "text": prompt + f"\n当前屏幕信息:{info_dict}\n命令执行历史:{cmd_history}" + "OCR结果格式:[{'内容1': (x坐标, y坐标)},{'内容2': (x坐标, y坐标)}]\n" + f"OCR信息:{OCR_info}"},
+            {"type": "text", "text": prompt + f"\n当前屏幕信息:{info_dict}\n命令执行历史:{cmd_history}" + "OCR结果格式:[{'内容1': (x坐标, y坐标)},{'内容2': (x坐标, y坐标)}]\n" + f"[OCR信息]:{OCR_info}"},
             {
                 "type": "image_url",
                 "image_url": {
@@ -124,5 +134,3 @@ while feedback != "TASK_COMPLETED":
         continue
     if "ERROR_COMMAND" in feedback:
         actions_history.append({"role": "user", "content": [{"type": "text", "text":f"你输出的命令有错误{feedback}"}]})
-
-
