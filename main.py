@@ -75,12 +75,18 @@ Task_Finished
 def clear_ocr_cache():
     global actions_history
     for item in actions_history:
-        if "content" in item and isinstance(item["content"], list):
-            for sub_item in item["content"]:
-                if "type" in sub_item and sub_item["type"] == "text" and "text" in sub_item:
-                    if "[OCR信息]:" in sub_item["text"]:
-                        parts = sub_item["text"].split("[OCR信息]:", 1)
-                        sub_item["text"] = parts[0] + "[OCR信息]:"
+        if "content" in item:
+            if isinstance(item["content"], list):
+                for sub_item in item["content"]:
+                    if "type" in sub_item and sub_item["type"] == "text" and "text" in sub_item:
+                        if "[OCR信息]:" in sub_item["text"]:
+                            parts = sub_item["text"].split("[OCR信息]:", 1)
+                            sub_item["text"] = parts[0] + "[OCR信息]:"
+            elif isinstance(item["content"], str):
+                if "[OCR信息]:" in item["content"]:
+                    parts = item["content"].split("[OCR信息]:", 1)
+                    item["content"] = parts[0] + "[OCR信息]:"
+                        
 
 def get_actions(prompt):
     global actions_history
