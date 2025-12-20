@@ -23,7 +23,7 @@ class ScreenCapture:
         pil_img = Image.fromqimage(pixmap.toImage())
         if pil_img.mode in ('RGBA', 'LA', 'P'):
             pil_img = pil_img.convert('RGB')
-        pil_img.save("OCR.jpg",format="JPEG")
+        pil_img.save(".\\cache\\OCR.jpg",format="JPEG")
         # 缩小截图节省token
         original_width, original_height = pil_img.size
         new_width = int(original_width // self.magnification)
