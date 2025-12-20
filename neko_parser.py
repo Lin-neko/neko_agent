@@ -18,6 +18,9 @@ class AgentParser:
 
     def parse_and_execute(self, llm_output):
         remaining_output = llm_output.strip()
+
+        if "[pro]" in remaining_output or "[basic]" in remaining_output:
+            return "WAIT_FOR_NEXT_STEP"
         
         while remaining_output:
             matched = False
@@ -47,7 +50,7 @@ class AgentParser:
                         x1, y1, x2, y2 = int(match.group(1)), int(match.group(2)), int(match.group(3)), int(match.group(4))
                         self.controller.drag(x1, y1, x2, y2)
                     elif action_type == 'finished':
-                        print("当前小任务完成")
+                        print("当前最小任务完成")
                         return "WAIT_FOR_NEXT_STEP"
                     elif action_type == 'task_end':
                         print("整个任务已彻底完成。")
