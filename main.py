@@ -4,9 +4,10 @@ from neko_parser import AgentParser
 from time import sleep
 import subprocess
 client = OpenAI(
-    api_key="sk-ODQM6Xa7NddfVDjFcOYW9CWo1IuGWwCkBdzVHC2Ym269aYGU",
+    api_key="sk-yCryh9TY1BlRqTZ2QZwA9nnSD2ONO0h4z2hhGzbPtWbHm4Sv",
     base_url="https://yunwu.ai/v1"
 )
+model_name = "gemini-2.5-flash-nothinking"
 grid = ScreenCapture()
 temp_shot = grid.grab_screen_base64(log=False)
 # 清除缓存文件
@@ -134,6 +135,7 @@ def get_actions(prompt):
     global actions_history
     global runtime
     global Pro
+    global model_name
     clear_ocr_cache()
     if runtime != 0 and Pro == 1:
         screen = ScreenCapture()
@@ -227,7 +229,7 @@ def get_actions(prompt):
         })
     try:
         response = client.chat.completions.create(
-            model="gemini-2.5-flash-nothinking",
+            model=model_name,
             messages=actions_history,
             temperature=0.1,
         )

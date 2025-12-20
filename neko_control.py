@@ -1,10 +1,18 @@
+import sys
+import os
 import win32api
 import win32con
 import win32gui
 import time
 import subprocess
+import ctypes
 
-
+def get_display_scale_factor():
+    user32 = ctypes.windll.user32
+    desktop_window = user32.GetDesktopWindow()
+    dpi = user32.GetDpiForWindow(desktop_window)
+    scale_factor = dpi / 96.0
+    return scale_factor
 class Controller:
     def click(self, x, y):
         hwnd = win32gui.WindowFromPoint((x, y))
@@ -15,11 +23,35 @@ class Controller:
         rect = win32gui.GetWindowRect(hwnd)
         win_x = x - rect[0]
         win_y = y - rect[1]
-
         print(f"猫猫向窗口句柄 {hex(hwnd)} 发送点击消息 (相对坐标: {win_x}, {win_y})")
         
-        long_position = win32api.MAKELONG(win_x, win_y)
+        try:
+            script_path = os.path.join(os.path.dirname(__file__), "gui","neko_click_indicator.py")
+            print(script_path)
+            python_exe = sys.executable if hasattr(sys, "executable") else "python"
+            args = [python_exe, script_path, str(x / get_display_scale_factor() ), str(y / get_display_scale_factor() ), "500", "8"]
+            try:
+                subprocess.Popen(
+                    args,
+                    creationflags=subprocess.CREATE_NO_WINDOW,
+                    close_fds=True,
+                    stdin=subprocess.DEVNULL,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+            except Exception:
+                subprocess.Popen(
+                    args,
+                    close_fds=True,
+                    stdin=subprocess.DEVNULL,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+        except Exception as _e:
+            print(f"点击可视化程序运行失败：{_e}")
         
+        long_position = win32api.MAKELONG(win_x, win_y)
+        time.sleep(0.3) #确保动画与点击操作同步
         try:
             win32gui.PostMessage(hwnd, win32con.WM_LBUTTONDOWN, win32con.MK_LBUTTON, long_position)
             time.sleep(0.05)
@@ -28,6 +60,8 @@ class Controller:
         except Exception as e:
             print(f"发送消息点击失败惹: {e}")
 
+    
+    
     def type_string(self, text,x,y):
         hwnd = win32gui.WindowFromPoint((x, y))
         if not hwnd:
