@@ -30,9 +30,18 @@ class Controller:
 
     def type_string(self, text,x,y):
         hwnd = win32gui.WindowFromPoint((x, y))
+        if not hwnd:
+            print(f"猫猫未找到坐标 ({x}, {y}) 下的窗口句柄喵...")
+            return
+
         for char in text:
-            vk = ord(char)
-            win32gui.PostMessage(hwnd, win32con.WM_CHAR, vk, 0)
+            if char == '\n':
+                win32gui.PostMessage(hwnd, win32con.WM_KEYDOWN, win32con.VK_RETURN, 0)
+                time.sleep(0.05) # 短暂延迟
+                win32gui.PostMessage(hwnd, win32con.WM_KEYUP, win32con.VK_RETURN, 0)
+            else:
+                vk = ord(char)
+                win32gui.PostMessage(hwnd, win32con.WM_CHAR, vk, 0)
         print(f"尝试向{hwnd}发送{text}")
     
     
@@ -87,7 +96,7 @@ class Controller:
             cmd_history.append(f"{cmd}:{result}")
         else :
             cmd_history.append(f"{cmd}:refused")
-        with open("cmd_history.txt","w",encoding='utf-8') as f :
+        with open(".\\cache\\cmd_history.txt","w",encoding='utf-8') as f :
             f.write(str(cmd_history))
             f.close()
         return 0
@@ -99,19 +108,24 @@ class Controller:
         else :
             cmd_history = []
             cmd_history.append(f"{cmd}:refused")
-            with open("cmd_history.txt","w",encoding='utf-8') as f :
+            with open(".\\cache\\cmd_history.txt","w",encoding='utf-8') as f :
                 f.write(str(cmd_history))
                 f.close()
                 return 1
 
     def file_write(self, file_path, content):
-        try:
-            with open(file_path, 'a', encoding='utf-8') as f:
-                f.write(content)
-            print(f"内容已成功追加到文件: {file_path}")
-            return 0
-        except Exception as e:
-            print(f"追加内容到文件失败惹: {e}")
+        write_or_not = str(input(f"猫猫尝试写入文件{file_path}是否允许(y/n):"))
+        if write_or_not == 'y' :
+            try:
+                with open(file_path, 'w', encoding='utf-8') as f:
+                    processed_content = content.replace('\\n', '\n')
+                    f.write(processed_content)
+                print(f"内容已成功写入文件: {file_path}")
+                return 0
+            except Exception as e:
+                print(f"写入内容到文件失败惹: {e}")
+                return 1
+        else :
             return 1
 
     def file_read(self, file_path):
@@ -120,7 +134,9 @@ class Controller:
             try :
                 with open(file_path, 'r', encoding='utf-8') as f:
                     content = f.read()
-                return content
+                with open(".\\cache\\file_read.txt","w",encoding='utf-8') as f :
+                    f.write(str(content))
+                    f.close()
             except FileNotFoundError:
                 return "[system]no such a file"
             except Exception as e:

@@ -2,15 +2,24 @@ from openai import OpenAI
 from neko_vision import ScreenCapture
 from neko_parser import AgentParser
 from time import sleep
+import subprocess
 client = OpenAI(
-    api_key="sk-B27Pk4kf1lzqYLdt22ISsyyiMVfjUfIgOWBUvWenAuDxN3cC",
+    api_key="sk-ODQM6Xa7NddfVDjFcOYW9CWo1IuGWwCkBdzVHC2Ym269aYGU",
     base_url="https://yunwu.ai/v1"
 )
 grid = ScreenCapture()
 temp_shot = grid.grab_screen_base64(log=False)
-#清除命令行缓存
-with open ('cmd_history.txt', 'w', encoding='utf-8') as f:
-    pass
+# 清除缓存文件
+cache_files = [
+    '.\\cache\\cmd_history.txt',
+    '.\\cache\\file_read.txt'
+]
+for file_path in cache_files:
+    try:
+        with open(file_path, 'w', encoding='utf-8') as f:
+            pass
+    except FileNotFoundError:
+        pass
 
 actions_history = [
     {"role": "system" , "content": f"""你是一个名为 Neko Agent 的 AI 助手，专门负责操作用户的 Windows 计算机。你的核心任务是将用户的大目标拆解为一系列精确的、可执行的小步骤。
@@ -19,11 +28,11 @@ actions_history = [
 1.  **严格格式：** 你只能回复工具指令或特定标记,严禁回复任何解释性文字、Markdown 或标点符号（除了指令自带的）。
 2.  **分步执行：** 每次对话只执行 1-3 个操作，然后必须等待用户上传新的屏幕截图。
 3.  **坐标依赖：你必须基于当前绘制了网格的屏幕截图（**网格规格：格线粗度:{grid.line_width}px,横向格线间隔:{grid.y_interval * grid.magnification}px,纵向格线间隔:{grid.x_interval * grid.magnification}px)和用户附带的屏幕信息与屏幕OCR识别结果析元素位置。
-4.  **猫娘语气：** 所有 `Msg` 提示必须在 40 字以内，语气要像一只傲娇又可爱的猫娘，不要使用表情符号。
+4.  **猫娘语气：** 所有 `Msg` 提示必语气要像一只可爱的猫娘，不要使用表情符号。
 
 **可用工具：**
 1.  `click x,y`：模拟鼠标左键单击。
-2.  `input "text x,y"`：在x,y坐标上的窗口输入文本，格式可以正确匹配这条正则表达式'^input\s+"(.*)"\s+([0-9]+),([0-9]+)$'，输入不允许有换行符，每一个换行符前都要用半角双引号闭合，如果要输入多行内容请多次调用此工具。
+2.  `input "text x,y"`：在x,y坐标上的窗口输入文本，格式可以正确匹配这条正则表达式'^input\s+"(.*)"\s+([0-9]+),([0-9]+)$'。
 3.  `exec "command"`：请求运行 CMD 命令（需用户审核，如果运行的是图形化应用（例如notepad，chrome）请勿使用该工具）**你必须使用msg标记符输出方便用户理解的执行结果，禁止直接输出Cmd_Result**。
 4.  `popen "command"`:用于运行图形化应用或运行获取不需要返回的命令（需用户审核）。
 5.  `drag x1,y1 x2,y2`:模拟鼠标在窗口上的拖拽，x1y1为起始坐标，x2y2为结束坐标。
@@ -31,7 +40,7 @@ actions_history = [
 7.  `file_write "file_path" "data"`:向文件末尾追加数据，如果没有该文件，将会创建文件并写入数据
 
 **可用使用的标记符：**
-1.  `Msg`：用于向用户传递简短的进度或确认信息，内容不允许有换行符，若要输出多行信息请每行调用一次Msg。
+1.  `Msg`：用于向用户传递简短的进度或确认信息
     -   *格式：* `Msg - 内容`
 2.  `Act_Finished`：必须使用，标记当前最小任务完成，等待下一张截图。
 3.  `Task_Finished`：必须使用，标记整个任务彻底完成，可以退出。
@@ -101,13 +110,30 @@ def get_actions(prompt):
     info_dict = {"physical_screen_width":scr_info[2], 
         "physical_screen_height":scr_info[3] ,
     }
-    with open("cmd_history.txt","r",encoding='utf-8') as f:
+    with open(".\\cache\\cmd_history.txt","r",encoding='utf-8') as f:
         cmd_history = f.read()
         f.close()
+    with open(".\\cache\\file_read.txt","r",encoding='utf-8') as f:
+        file = f.read()
+        f.close()
+    pwd = subprocess.run(
+                "chdir",
+                shell=True,
+                capture_output=True,
+                text=True,
+                encoding='gbk'
+            )
+    files_under_current_dir = subprocess.run(
+                "dir",
+                shell=True,
+                capture_output=True,
+                text=True,
+                encoding='gbk'
+            )
     actions_history.append({
         "role": "user",
         "content": [
-            {"type": "text", "text": prompt + f"\n当前屏幕信息:{info_dict}\n命令执行历史:{cmd_history}" + "OCR结果格式:[{'内容1': (x坐标, y坐标)},{'内容2': (x坐标, y坐标)}]\n" + f"[OCR信息]:{OCR_info}"},
+            {"type": "text", "text": prompt + f"\n当前屏幕信息:{info_dict}\n命令执行历史:{cmd_history}\n文件读取结果:{file}\n当前工作目录:{pwd},目录下的文件:{files_under_current_dir}" + "OCR信息格式:[{'内容1': (x坐标, y坐标)},{'内容2': (x坐标, y坐标)}]\n" + f"[OCR信息]:{OCR_info}"},
             {
                 "type": "image_url",
                 "image_url": {
@@ -141,5 +167,5 @@ while feedback != "TASK_COMPLETED":
     if feedback == "WAIT_FOR_NEXT_STEP" :
         sleep(1)
         continue
-    if "ERROR_COMMAND" in feedback:
+    if "ERROR_COMMAND" in str(feedback):
         actions_history.append({"role": "user", "content": [{"type": "text", "text":f"你输出的命令有错误{feedback}"}]})

@@ -4,75 +4,67 @@ class AgentParser:
     def __init__(self):
         self.controller = Controller()
         self.patterns = {
-            'msg': re.compile(r'^Msg\s*-\s*(.+)$'),
-            'click': re.compile(r'^click\s+([0-9]+),([0-9]+)$'),
-            'input': re.compile(r'^input\s+"(.*)"\s+([0-9]+),([0-9]+)$'),
-            'exec': re.compile(r'^exec\s+"(.*)"$'),
-            'popen': re.compile(r'^popen\s+"(.*)"$'),
-            'finished': re.compile(r'^Act_Finished$'),
-            'task_end': re.compile(r'^Task_Finished$'),
-            'drag' : re.compile(r'^drag\s+([0-9]+),([0-9]+)\s+([0-9]+),([0-9]+)$'),
+            'msg': re.compile(r'^Msg\s*-\s*(.+)$', re.MULTILINE),
+            'click': re.compile(r'^click\s+([0-9]+),([0-9]+)$', re.MULTILINE),
+            'input': re.compile(r'^input\s+"((?:.|\n)*?)"\s+([0-9]+),([0-9]+)$', re.MULTILINE),
+            'exec': re.compile(r'^exec\s+"(.*)"$', re.MULTILINE),
+            'popen': re.compile(r'^popen\s+"(.*)"$', re.MULTILINE),
+            'finished': re.compile(r'^Act_Finished$', re.MULTILINE),
+            'task_end': re.compile(r'^Task_Finished$', re.MULTILINE),
+            'drag' : re.compile(r'^drag\s+([0-9]+),([0-9]+)\s+([0-9]+),([0-9]+)$', re.MULTILINE),
+            'file_read': re.compile(r'^file_read\s+"(.*)"$', re.MULTILINE),
+            'file_write': re.compile(r'^file_write\s+"((?:.|\n)*?)"\s+"((?:.|\n)*?)"$', re.MULTILINE),
         }
 
     def parse_and_execute(self, llm_output):
-        lines = llm_output.strip().split('\n')
-        for line in lines:
-            line = line.strip()
-            if not any(keyword in line for keyword in ["click", "input", "exec", "popen", "Msg", "drag", "Act_Finished", "Task_Finished"]):
-                continue
+        remaining_output = llm_output.strip()
+        
+        while remaining_output:
+            matched = False
+            for action_type, args in self.patterns.items():
+                match = args.match(remaining_output)
+                if match:
+                    matched = True
+                    # Execute the corresponding action
+                    if action_type == 'msg':
+                        content = match.group(1)
+                        print(content)
+                    elif action_type == 'click':
+                        x, y = int(match.group(1)), int(match.group(2))
+                        self.controller.click(x, y)
+                    elif action_type == 'input':
+                        text = match.group(1)
+                        x = int(match.group(2))
+                        y = int(match.group(3))
+                        self.controller.type_string(text, x, y)
+                    elif action_type == 'exec':
+                        command = match.group(1)
+                        self.controller.exec(command)
+                    elif action_type == 'popen':
+                        command = match.group(1)
+                        self.controller.popen(command)
+                    elif action_type == 'drag':
+                        x1, y1, x2, y2 = int(match.group(1)), int(match.group(2)), int(match.group(3)), int(match.group(4))
+                        self.controller.drag(x1, y1, x2, y2)
+                    elif action_type == 'finished':
+                        print("当前小任务完成")
+                        return "WAIT_FOR_NEXT_STEP"
+                    elif action_type == 'task_end':
+                        print("整个任务已彻底完成。")
+                        return "TASK_COMPLETED"
+                    elif action_type == 'file_read':
+                        file_path = match.group(1)
+                        content = self.controller.file_read(file_path)
+                    elif action_type == 'file_write':
+                        file_path = match.group(1)
+                        content = match.group(2)
+                        self.controller.file_write(file_path, content)
+                        
+                    
+                    remaining_output = remaining_output[match.end():].strip()
+                    break 
             
-            if not line:
-                continue
-
-            # 处理 Msg
-            if self.patterns['msg'].match(line):
-                match = self.patterns['msg'].match(line)
-                content = match.group(1)
-                print(content)
-
-            # 处理 click
-            elif self.patterns['click'].match(line):
-                match = self.patterns['click'].match(line)
-                x, y = int(match.group(1)), int(match.group(2))
-                self.controller.click(x, y)
-                
-
-            # 处理 input
-            elif self.patterns['input'].match(line):
-                match = self.patterns['input'].match(line)
-                text = match.group(1)
-                x = int(match.group(2))
-                y = int(match.group(3))  
-                self.controller.type_string(text,x,y) 
-
-            # 处理 exec
-            elif self.patterns['exec'].match(line):
-                match = self.patterns['exec'].match(line)
-                command = match.group(1)
-                self.controller.exec(command)
-            
-            #处理popen
-            elif self.patterns['popen'].match(line):
-                match = self.patterns['popen'].match(line)
-                command = match.group(1)
-                self.controller.popen(command)
-
-            # 处理 drag
-            elif self.patterns['drag'].match(line):
-                match = self.patterns['drag'].match(line)
-                x1, y1, x2, y2 = int(match.group(1)), int(match.group(2)), int(match.group(3)), int(match.group(4))
-                self.controller.drag(x1, y1, x2, y2)
-
-            # 处理 Act_Finished
-            elif self.patterns['finished'].match(line):
-                print("当前小任务完成")
-                return "WAIT_FOR_NEXT_STEP"
-
-            # 处理 Task_Finished
-            elif self.patterns['task_end'].match(line):
-                print("整个任务已彻底完成。")
-                return "TASK_COMPLETED"
-
-            else:
-                print(f"警告: 无法解析的指令 '{line}'")
-
+            if not matched:
+                return f"ERROR_COMMAND:{remaining_output.splitlines()[0]}"
+        
+        return 1
