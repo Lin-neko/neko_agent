@@ -19,25 +19,25 @@ class RequestIdOCR(Enum):
     OCRPush = 1
 
 def OCRRemoteOnConnect(is_connected:c_bool, user_data:py_object):
-    print(f"OCRRemoteOnConnect 回调函数被调用, 参数, is_connected: {is_connected}")
+    # print(f"OCRRemoteOnConnect 回调函数被调用, 参数, is_connected: {is_connected}")
     if user_data:
         manager_obj:OcrManager = cast(user_data, py_object).value
         manager_obj.SetConnectState(True)
 
 def OCRRemoteOnDisConnect(user_data:py_object):
-    print(f"OCRRemoteOnDisConnect 回调函数被调用 ")
+    # print(f"OCRRemoteOnDisConnect 回调函数被调用 ")
     if user_data:
         manager_obj:OcrManager = cast(user_data, py_object).value
         manager_obj.SetConnectState(False)
 
 def OCRReadOnPush(request_id:c_uint32, request_info:c_void_p, user_data:py_object):
-    print(f"OCRReadOnPush 回调函数被调用 参数, request_id: {request_id}, request_info: {request_info}")
+    # print(f"OCRReadOnPush 回调函数被调用 参数, request_id: {request_id}, request_info: {request_info}")
     if user_data:
         manager_obj:OcrManager = cast(user_data, py_object).value
         pb_size = c_uint32()
         pb_data = manager_obj.GetPbSerializedData(request_info, pb_size)
         if pb_size.value > 10:
-            print(f"正在解析pb数据，pb数据大小: {pb_size.value}")
+            # print(f"正在解析pb数据，pb数据大小: {pb_size.value}")
             manager_obj.CallUsrCallback(request_id, pb_data, pb_size.value)
             manager_obj.RemoveReadInfo(request_info)
 
@@ -83,11 +83,11 @@ class OcrManager(XPluginManager):
             raise Exception(f"给定图片路径pic_path不存在: {pic_path}")
         pic_path = os.path.abspath(pic_path)
         while not self.m_connect_state.value:
-            print("等待Ocr服务连接成功!")
+            # print("等待Ocr服务连接成功!")
             time.sleep(1)
         _id = self.GetIdleTaskId()
         if not _id:
-            print("当前队列已满，请等待后重试")
+            # print("当前队列已满，请等待后重试")
             return
         self.SendOCRTask(_id, pic_path)
     
