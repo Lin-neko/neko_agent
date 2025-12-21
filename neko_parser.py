@@ -14,6 +14,7 @@ class AgentParser:
             'drag' : re.compile(r'^drag\s+([0-9]+),([0-9]+)\s+([0-9]+),([0-9]+)$', re.MULTILINE),
             'file_read': re.compile(r'^file_read\s+"(.*)"$', re.MULTILINE),
             'file_write': re.compile(r'^file_write\s+"((?:.|\n)*?)"\s+"((?:.|\n)*?)"$', re.MULTILINE),
+            'scroll': re.compile(r'^scroll\s+([0-9]+),([0-9]+)\s+([0-9]+)$', re.MULTILINE),
         }
 
     def parse_and_execute(self, llm_output):
@@ -49,6 +50,10 @@ class AgentParser:
                     elif action_type == 'drag':
                         x1, y1, x2, y2 = int(match.group(1)), int(match.group(2)), int(match.group(3)), int(match.group(4))
                         self.controller.drag(x1, y1, x2, y2)
+                    elif action_type == 'scroll':
+                        x, y = int(match.group(1)), int(match.group(2))
+                        scroll_amount = int(match.group(3))
+                        self.controller.scroll(scroll_amount, x, y)
                     elif action_type == 'finished':
                         print("当前最小任务完成")
                         return "WAIT_FOR_NEXT_STEP"

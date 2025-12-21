@@ -27,7 +27,6 @@ class Controller:
         
         try:
             script_path = os.path.join(os.path.dirname(__file__), "gui","neko_click_indicator.py")
-            print(script_path)
             python_exe = sys.executable if hasattr(sys, "executable") else "python"
             args = [python_exe, script_path, str(x / get_display_scale_factor() ), str(y / get_display_scale_factor() ), "500", "8"]
             try:
@@ -116,6 +115,17 @@ class Controller:
         except Exception as e:
             print(f"发送消息拖动失败惹: {e}")
             return 1
+        
+
+    def scroll(scroll_amount, x, y):
+        hwnd = win32gui.WindowFromPoint((x, y))
+        if hwnd == 0:
+            print(f"未找到{x},{y}下的的窗口。")
+            return 1
+        lParam = win32api.MAKELONG(x, y)
+        wParam = win32api.MAKELONG(0, scroll_amount)
+        win32api.PostMessage(hwnd, win32con.WM_MOUSEWHEEL, wParam, lParam)
+        print(f"已向窗口 '{hwnd}' 发送鼠标滚轮滚动消息 (滚动量: {scroll_amount})。")
     def exec(self,cmd):
         cmd_history = []
         exec_or_not = str(input(f"猫猫尝试运行命令{cmd},是否允许(y/n):"))
