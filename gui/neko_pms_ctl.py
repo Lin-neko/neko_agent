@@ -1,0 +1,106 @@
+from PyQt6.QtWidgets import QTextEdit, QApplication , QPushButton, QLabel
+from PyQt6.QtCore import Qt, QRect
+import sys
+
+class NekoPMS(QTextEdit):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.original_geometry = QRect(int(QApplication.primaryScreen().geometry().width() * 0.9 - QApplication.primaryScreen().geometry().width() * 0.15 // 2),
+                                       int(QApplication.primaryScreen().geometry().height() * 0.15),
+                                       int(QApplication.primaryScreen().geometry().width() * 0.15),
+                                       int(QApplication.primaryScreen().geometry().height() * 0.2))
+        self.setGeometry(self.original_geometry)
+        self.setReadOnly(True)
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool)
+        self.setStyleSheet("""
+            QTextEdit {
+                background-color: #282c34; /* 深灰色背景 */
+                color: #abb2bf; /* 浅灰色文本 */
+                font-family: "Cascadia Code", "Consolas", "Monaco", "Courier New", monospace;
+                font-size: 10pt;
+                border: 1px solid #3e4452; /* 边框 */
+                border-radius: 5px; /* 轻微圆角 */
+                padding: 5px; /* 内边距 */
+            }
+            QScrollBar:vertical {
+                border: none;
+                background: #282c34;
+                width: 10px;
+                margin: 0px 0px 0px 0px;
+            }
+            QScrollBar::handle:vertical {
+                background: #4b5263;
+                min-height: 20px;
+                border-radius: 5px;
+            }
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+                background: none;
+            }
+            QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+                background: none;
+            }
+        """)
+        self.approve_btn = QPushButton('允许', self)
+        self.approve_btn.setGeometry(int(self.width() * 0.06),
+                                     int(self.height() * 0.75),
+                                     int(self.width() * 0.42),
+                                     int(self.height() * 0.2))
+        self.approve_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #abb2bf;
+                color: #3e4452;
+                font-family: "Cascadia Code", "Consolas", "Monaco", "Courier New", monospace;
+                border: 1px solid #4b5263;
+                border-radius: 10px;
+                font-size: 10pt;
+            }
+            QPushButton:hover {
+                background-color: #4b5263;
+            }
+            QPushButton:pressed {
+                background-color: #282c34;
+            }
+        """)
+        self.reject_btn = QPushButton('拒绝', self)
+        self.reject_btn.setGeometry(int(self.width() * 0.53),
+                                     int(self.height() * 0.75),
+                                     int(self.width() * 0.42),
+                                     int(self.height() * 0.2))
+        self.reject_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #3e4452;
+                color: #abb2bf;
+                font-family: "Cascadia Code", "Consolas", "Monaco", "Courier New", monospace;
+                border: 1px solid #4b5263;
+                border-radius: 10px;
+                font-size: 10pt;
+            }
+            QPushButton:hover {
+                background-color: #4b5263;
+            }
+            QPushButton:pressed {
+                background-color: #282c34;
+            }
+        """)
+
+        self.cmd_label = QLabel(self)
+        self.cmd_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.cmd_label.setGeometry(0,int(self.approve_btn.height() - 10), int(self.width()), int(self.height() * 0.7))
+        self.cmd_label.setStyleSheet("""
+            QLabel {
+                color: #abb2bf;
+                font-family: "Cascadia Code", "Consolas", "Monaco", "Courier New", monospace;
+                font-size: 10pt;
+            }
+        """)
+    def cmd_exec_check(self, cmd):
+        self.cmd_label.setText(f"Neko尝试运行命令\n{cmd}\n是否允许?")
+
+    def test2(self):
+        self.cmd_label.setText("2")
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    dummy_window = NekoPMS()
+    dummy_window.show()
+    dummy_window.cmd_exec_check("123")
+    sys.exit(app.exec())
