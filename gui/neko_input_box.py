@@ -16,7 +16,7 @@ class InputBox(QWidget):
         self.main_layout.setSpacing(30)
 
         self.input_field = QLineEdit(self)
-        self.input_field.setPlaceholderText("请输入内容...")
+        self.input_field.setPlaceholderText("给Neko下达任务吧~(输入空内容取消)")
         self.input_field.setStyleSheet("""
             QLineEdit {
                 background-color: rgba(255, 255, 255, 200);
@@ -43,7 +43,7 @@ class InputBox(QWidget):
                 border: none;
             }
             QPushButton:hover {
-                background-color: rgba(255, 255, 255, 225); 
+                background-color: rgba(255, 255, 255, 255); 
             }
         """)
         self.send_button.clicked.connect(self.on_return_pressed)
@@ -142,4 +142,6 @@ class InputBox(QWidget):
         self.show()
         self._event_loop = QEventLoop()
         self._event_loop.exec()
+        if self._result == "" :
+            return "Canceled"
         return self._result
