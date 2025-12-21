@@ -1,5 +1,6 @@
 from PyQt6.QtWidgets import QTextEdit, QApplication , QPushButton, QLabel
 from PyQt6.QtCore import Qt, QRect
+from PyQt6.QtGui import QPixmap
 import sys
 
 class NekoPMS(QTextEdit):
@@ -55,7 +56,7 @@ class NekoPMS(QTextEdit):
                 font-size: 10pt;
             }
             QPushButton:hover {
-                background-color: #4b5263;
+                background-color: #787d86;
             }
             QPushButton:pressed {
                 background-color: #282c34;
@@ -93,6 +94,11 @@ class NekoPMS(QTextEdit):
                 font-size: 10pt;
             }
         """)
+        self.cmd_icon = QLabel(self)
+        self.cmd_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.cmd_icon.setGeometry(int(self.width() * 0.34),int(self.height()*0.1), int(self.width()*0.3), int(self.height() * 0.2))
+        self.cmd_icon.setPixmap(QPixmap('gui\\img\\cmd_exec.png'))
+        self.cmd_icon.setScaledContents(True)
     def cmd_exec_check(self, cmd):
         self.cmd_label.setText(f"Neko尝试运行命令\n{cmd}\n是否允许?")
 
