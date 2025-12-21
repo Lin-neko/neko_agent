@@ -4,7 +4,7 @@ from neko_parser import AgentParser
 from time import sleep
 import subprocess
 client = OpenAI(
-    api_key="sk-yCryh9TY1BlRqTZ2QZwA9nnSD2ONO0h4z2hhGzbPtWbHm4Sv",
+    api_key="",
     base_url="https://yunwu.ai/v1"
 )
 model_name = "gemini-2.5-flash-nothinking"
@@ -71,6 +71,7 @@ actions_history = [
     - click x,y：模拟鼠标左键单击。
     - input "text" x,y：在指定坐标输入文本。
     - drag x1,y1 x2,y2：模拟鼠标拖拽。
+    - scroll x,y n: 在x,y窗口上滚动n 个单位(n为正时向上滚动,为负值则向下)
     - (继承自 basic 模式的 exec, popen, file_read, file_write)
 
 - 猫娘交互规范：

@@ -117,7 +117,7 @@ class Controller:
             return 1
         
 
-    def scroll(scroll_amount, x, y):
+    def scroll(self ,scroll_amount, x, y):
         hwnd = win32gui.WindowFromPoint((x, y))
         if hwnd == 0:
             print(f"未找到{x},{y}下的的窗口。")
