@@ -1,6 +1,7 @@
 import sys
 from PyQt6.QtWidgets import QApplication, QPushButton, QWidget
 from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve, QRect, QTimer, QSize
+from PyQt6.QtGui import QPainter, QColor
 
 class CancelButton(QPushButton):
     def __init__(self, parent=None):
@@ -10,7 +11,7 @@ class CancelButton(QPushButton):
                          int(screen_geometry.height() * 0.85),
                          int(screen_geometry.width() * 0.15),
                          int(screen_geometry.height() * 0.045))
-        self.setText("终止")
+        self.setText("  终止") # 添加两个空格为图标留出空间
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         
@@ -20,16 +21,19 @@ class CancelButton(QPushButton):
         
         self.setStyleSheet("""
             QPushButton {
-                border-radius: 17%;
-                background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,stop: 0 #ff5252, stop: 1 #b33939);
+                border-radius: 12px;
+                background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #6c5ce7, stop: 1 #a29bfe);
                 color: white;
                 font-size: 18px;
                 font-weight: 500;
                 border: none;
-                padding: 8px 16px;
+                padding: 10px 20px 10px 40px; /* 增加左侧内边距为图标留出空间 */
             }
             QPushButton:hover {
-                background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,stop: 0 #ff6b6b, stop: 1 #ff5252);
+                background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #8e7dff, stop: 1 #c0baff);
+            }
+            QPushButton:pressed {
+                background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #5a4acb, stop: 1 #8e7dff);
             }
         """)
         
@@ -81,6 +85,23 @@ class CancelButton(QPushButton):
         
     def paintEvent(self, event):
         super().paintEvent(event)
+        
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        
+        # 设置图标颜色 (与文本颜色一致)
+        painter.setBrush(QColor("white"))
+        painter.setPen(Qt.PenStyle.NoPen)
+        
+        # 计算图标位置和大小
+        icon_size = self.height() * 0.4 # 图标大小为按钮高度的40%
+        icon_x = self.width() * 0.1 # 距离左侧10%
+        icon_y = (self.height() - icon_size) / 2 # 垂直居中
+        
+        # 绘制圆角矩形 (停止图标)
+        painter.drawRoundedRect(int(icon_x), int(icon_y), int(icon_size), int(icon_size), 3, 3)
+        
+        painter.end()
         
     @property
     def opacity(self):
