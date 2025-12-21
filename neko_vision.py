@@ -60,6 +60,7 @@ class ScreenCapture:
         ocr_manager.SetUsrLibDir(r'.\OCR')
         ocr_manager.SetOcrResultCallback(ocr_result_callback)
         ocr_manager.StartWeChatOCR()
+        print("正在调用OCR")
         ocr_manager.DoOCRTask(r'.\\cache\\OCR.jpg')
         while ocr_manager.m_task_id.qsize() != OCR_MAX_TASK_ID:
             pass
