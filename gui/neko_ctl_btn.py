@@ -7,7 +7,7 @@ class CancelButton(QPushButton):
     def __init__(self, parent=None):
         super().__init__(parent)
         screen_geometry = QApplication.primaryScreen().geometry()
-        self.setGeometry(int(screen_geometry.width() * 0.45), 
+        self.setGeometry(int(screen_geometry.width() * 0.5 -screen_geometry.width() * 0.15 // 2), 
                          int(screen_geometry.height() * 0.85),
                          int(screen_geometry.width() * 0.15),
                          int(screen_geometry.height() * 0.045))
