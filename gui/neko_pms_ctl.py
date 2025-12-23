@@ -104,29 +104,43 @@ class NekoPMS(QTextEdit):
         self.file_icon = QLabel(self)
         self.file_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.file_icon.setGeometry(int(self.width() * 0.38),int(self.height()*0.1), int(self.width()*0.25), int(self.height() * 0.2))
-        self.file_icon.setPixmap(QPixmap('gui\\img\\file.jpg'))
+        self.file_icon.setPixmap(QPixmap('gui\\img\\file.png'))
         self.file_icon.setScaledContents(True)
         self.file_icon.hide()
+
+        self.file_edit_icon = QLabel(self)
+        self.file_edit_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.file_edit_icon.setGeometry(int(self.width() * 0.38),int(self.height()*0.1), int(self.width()*0.25), int(self.height() * 0.2))
+        self.file_edit_icon.setPixmap(QPixmap('gui\\img\\file_edit.png'))
+        self.file_edit_icon.setScaledContents(True)
+        self.file_edit_icon.hide()
+
+        self.popen_icon = QLabel(self)
+        self.popen_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.popen_icon.setGeometry(int(self.width() * 0.38),int(self.height()*0.1), int(self.width()*0.25), int(self.height() * 0.2))
+        self.popen_icon.setPixmap(QPixmap('gui\\img\\popen.png'))
+        self.popen_icon.setScaledContents(True)
+        self.popen_icon.hide()
     def cmd_exec_check(self, cmd):
         self.cmd_icon.show()
         self.label.setText(f"Neko尝试运行命令\n{cmd}\n是否允许?")
     
     def popen_check(self, cmd):
-        self.cmd_icon.show()
-        self.label.setText(f'Neko尝试"在后台"运行命令\n{cmd}\n是否允许?')
+        self.popen_icon.show()
+        self.label.setText(f'Neko尝试在后台运行命令\n{cmd}\n是否允许?')
 
     def file_read_check(self, file_path):
         self.file_icon.show()
         self.label.setText(f"Neko尝试读取文件\n{file_path}\n是否允许")
     
     def file_write_check(self, file_path):
-        self.file_icon.show()
+        self.file_edit_icon.show()
         self.label.setText(f"Neko尝试写入文件\n{file_path}\n是否允许")
         
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     dummy_window = NekoPMS()
     dummy_window.show()
-    dummy_window.popen_check("")
+    dummy_window.file_read_check("123")
     
     sys.exit(app.exec())
