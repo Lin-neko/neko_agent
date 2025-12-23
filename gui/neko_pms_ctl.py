@@ -84,10 +84,10 @@ class NekoPMS(QTextEdit):
             }
         """)
 
-        self.cmd_label = QLabel(self)
-        self.cmd_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.cmd_label.setGeometry(0,int(self.approve_btn.height() - 10), int(self.width()), int(self.height() * 0.7))
-        self.cmd_label.setStyleSheet("""
+        self.label = QLabel(self)
+        self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.label.setGeometry(0,int(self.approve_btn.height() - 10), int(self.width()), int(self.height() * 0.7))
+        self.label.setStyleSheet("""
             QLabel {
                 color: #abb2bf;
                 font-family: "Cascadia Code", "Consolas", "Monaco", "Courier New", monospace;
@@ -96,17 +96,37 @@ class NekoPMS(QTextEdit):
         """)
         self.cmd_icon = QLabel(self)
         self.cmd_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.cmd_icon.setGeometry(int(self.width() * 0.34),int(self.height()*0.1), int(self.width()*0.3), int(self.height() * 0.2))
+        self.cmd_icon.setGeometry(int(self.width() * 0.38),int(self.height()*0.1), int(self.width()*0.25), int(self.height() * 0.2))
         self.cmd_icon.setPixmap(QPixmap('gui\\img\\cmd_exec.png'))
         self.cmd_icon.setScaledContents(True)
-    def cmd_exec_check(self, cmd):
-        self.cmd_label.setText(f"Neko尝试运行命令\n{cmd}\n是否允许?")
+        self.cmd_icon.hide()
 
-    def test2(self):
-        self.cmd_label.setText("2")
+        self.file_icon = QLabel(self)
+        self.file_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.file_icon.setGeometry(int(self.width() * 0.38),int(self.height()*0.1), int(self.width()*0.25), int(self.height() * 0.2))
+        self.file_icon.setPixmap(QPixmap('gui\\img\\file.jpg'))
+        self.file_icon.setScaledContents(True)
+        self.file_icon.hide()
+    def cmd_exec_check(self, cmd):
+        self.cmd_icon.show()
+        self.label.setText(f"Neko尝试运行命令\n{cmd}\n是否允许?")
+    
+    def popen_check(self, cmd):
+        self.cmd_icon.show()
+        self.label.setText(f'Neko尝试"在后台"运行命令\n{cmd}\n是否允许?')
+
+    def file_read_check(self, file_path):
+        self.file_icon.show()
+        self.label.setText(f"Neko尝试读取文件\n{file_path}\n是否允许")
+    
+    def file_write_check(self, file_path):
+        self.file_icon.show()
+        self.label.setText(f"Neko尝试写入文件\n{file_path}\n是否允许")
+        
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     dummy_window = NekoPMS()
     dummy_window.show()
-    dummy_window.cmd_exec_check("123")
+    dummy_window.popen_check("")
+    
     sys.exit(app.exec())
