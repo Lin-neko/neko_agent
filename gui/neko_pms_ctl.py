@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import QTextEdit, QApplication , QPushButton, QLabel
-from PyQt6.QtCore import Qt, QRect
+from PyQt6.QtCore import Qt, QRect, QEventLoop, QPropertyAnimation
 from PyQt6.QtGui import QPixmap
 import sys
 
@@ -121,26 +121,72 @@ class NekoPMS(QTextEdit):
         self.popen_icon.setPixmap(QPixmap('gui\\img\\popen.png'))
         self.popen_icon.setScaledContents(True)
         self.popen_icon.hide()
+
+        self.result = None
+        self.loop = None
+        self.approve_btn.clicked.connect(self.on_approve)
+        self.reject_btn.clicked.connect(self.on_reject)
+
+    def on_approve(self):
+        self.result = "approved"
+        if self.loop:
+            self.loop.quit()
+
+    def on_reject(self):
+        self.result = "rejected"
+        if self.loop:
+            self.loop.quit()
+
+    def _hide_all_icons(self):
+        self.cmd_icon.hide()
+        self.file_icon.hide()
+        self.file_edit_icon.hide()
+        self.popen_icon.hide()
+
+    def _wait_for_decision(self):
+        self.setWindowOpacity(0.0)
+        self.show()
+        
+        self.animation = QPropertyAnimation(self, b"windowOpacity")
+        self.animation.setDuration(300)  # 300ms 渐显
+        self.animation.setStartValue(0.0)
+        self.animation.setEndValue(1.0)
+        self.animation.start()
+
+        self.loop = QEventLoop()
+        self.loop.exec()
+
+        # 渐隐效果
+        self.fade_out = QPropertyAnimation(self, b"windowOpacity")
+        self.fade_out.setDuration(300)  # 300ms 渐隐
+        self.fade_out.setStartValue(1.0)
+        self.fade_out.setEndValue(0.0)
+        self.fade_out.finished.connect(self.hide)
+        self.fade_out.start()
+
+        fade_loop = QEventLoop()
+        self.fade_out.finished.connect(fade_loop.quit)
+        fade_loop.exec()
+
+        self._hide_all_icons()
+        return self.result
+
     def cmd_exec_check(self, cmd):
         self.cmd_icon.show()
         self.label.setText(f"Neko尝试运行命令\n{cmd}\n是否允许?")
+        return self._wait_for_decision()
     
     def popen_check(self, cmd):
         self.popen_icon.show()
         self.label.setText(f'Neko尝试在后台运行命令\n{cmd}\n是否允许?')
+        return self._wait_for_decision()
 
     def file_read_check(self, file_path):
         self.file_icon.show()
         self.label.setText(f"Neko尝试读取文件\n{file_path}\n是否允许")
+        return self._wait_for_decision()
     
     def file_write_check(self, file_path):
         self.file_edit_icon.show()
         self.label.setText(f"Neko尝试写入文件\n{file_path}\n是否允许")
-        
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    dummy_window = NekoPMS()
-    dummy_window.show()
-    dummy_window.file_read_check("123")
-    
-    sys.exit(app.exec())
+        return self._wait_for_decision()
