@@ -4,7 +4,7 @@ from neko_parser import AgentParser
 from time import sleep
 import subprocess
 client = OpenAI(
-    api_key="",
+    api_key="sk-NK356ZHX6IA7MP1e4C7XMJlVDQBpUuPpRo2MhdJWPBKns4QS",
     base_url="https://yunwu.ai/v1"
 )
 model_name = "gemini-2.5-flash-nothinking"

@@ -95,6 +95,36 @@ class Controller:
         print(f"起始相对坐标: ({start_win_x}, {start_win_y}) -> 目标相对坐标: ({end_win_x}, {end_win_y})")
 
         try:
+            script_path = os.path.join(os.path.dirname(__file__), "gui","neko_move_indicator.py")
+            python_exe = sys.executable if hasattr(sys, "executable") else "python"
+            args = [python_exe, script_path, str(current_x / get_display_scale_factor() ),
+                    str(current_y / get_display_scale_factor() ),
+                    str(new_x / get_display_scale_factor()),
+                    str(new_y / get_display_scale_factor()),
+                    "500", "8"]
+            try:
+                subprocess.Popen(
+                    args,
+                    creationflags=subprocess.CREATE_NO_WINDOW,
+                    close_fds=True,
+                    stdin=subprocess.DEVNULL,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+            except Exception:
+                subprocess.Popen(
+                    args,
+                    close_fds=True,
+                    stdin=subprocess.DEVNULL,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+        except Exception as _e:
+            print(f"拖动可视化程序运行失败：{_e}")
+
+        time.sleep(0.3) #确保动画与操作同步
+
+        try:
             start_position = win32api.MAKELONG(start_win_x, start_win_y)
             win32gui.PostMessage(hwnd, win32con.WM_LBUTTONDOWN, win32con.MK_LBUTTON, start_position)
             time.sleep(0.1)
@@ -124,6 +154,37 @@ class Controller:
             return 1
         lParam = win32api.MAKELONG(x, y)
         wParam = win32api.MAKELONG(0, scroll_amount)
+        
+        try:
+            script_path = os.path.join(os.path.dirname(__file__), "gui","neko_move_indicator.py")
+            python_exe = sys.executable if hasattr(sys, "executable") else "python"
+            args = [python_exe, script_path, str(x / get_display_scale_factor() ),
+                    str(y / get_display_scale_factor() ),
+                    str(x / get_display_scale_factor()),
+                    str((y + scroll_amount) / get_display_scale_factor()),
+                    "500", "8"]
+            try:
+                subprocess.Popen(
+                    args,
+                    creationflags=subprocess.CREATE_NO_WINDOW,
+                    close_fds=True,
+                    stdin=subprocess.DEVNULL,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+            except Exception:
+                subprocess.Popen(
+                    args,
+                    close_fds=True,
+                    stdin=subprocess.DEVNULL,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+        except Exception as _e:
+            print(f"滚动可视化程序运行失败：{_e}")
+
+        time.sleep(0.3) #确保动画与操作同步
+        
         win32api.PostMessage(hwnd, win32con.WM_MOUSEWHEEL, wParam, lParam)
         print(f"已向窗口 '{hwnd}' 发送鼠标滚轮滚动消息 (滚动量: {scroll_amount})。")
     def exec(self,cmd):
