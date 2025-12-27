@@ -2,7 +2,7 @@ import sys
 import json
 import os
 from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QLabel, QPushButton, QComboBox , QScrollArea
-from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve, QRect, QEventLoop
+from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve, QRect, QEventLoop , QTimer
 from dark_mode_manager import dark_or_light
 
 
@@ -469,11 +469,12 @@ class NekoSettingsWindow(QWidget):
         self.animation.setEndValue(end_rect)
         self.animation.start()
         
-        self.animation.finished.connect(self.hide)
+        self.animation.finished.connect(self._delayed_exit)
         if hasattr(self, '_event_loop'):
             self._event_loop.exit()
-        sys.exit(0)
         
+    def _delayed_exit(self):
+        QTimer.singleShot(450, lambda: sys.exit(0))
             
     def get_settings(self):
         self.show()
