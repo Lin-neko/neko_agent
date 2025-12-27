@@ -1,0 +1,13 @@
+{
+    "ai_settings": {
+        "base_url": "123",
+        "api_key": "12",
+        "model_name": "123"
+    },
+    "neko_vision_settings": {
+        "line_width": "11",
+        "divide": "1",
+        "magnification": "1"
+    },
+    "dark_mode": "自动"
+}
