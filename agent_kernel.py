@@ -8,6 +8,10 @@ client = OpenAI(
     base_url="https://yunwu.ai/v1"
 )
 model_name = "gemini-2.5-flash-nothinking"
+
+chat_base_url = ""
+chat_api_key = ""
+chat_model_name = ""
 grid = ScreenCapture()
 temp_shot = grid.grab_screen_base64(log=False)
 # 清除缓存文件
@@ -31,11 +35,12 @@ actions_history = [
 
 模式选择与策略
 
-你拥有两种工作模式。用户首次输入任务后，你必须立即分析任务类型，并在第一行仅输出 [basic] 或 [pro]，随后换行输出 Act_Finished。
+你拥有三种工作模式。用户首次输入任务后，你必须立即分析任务类型，并在第一行仅输出 [basic] 或 [pro] 或 [chat]，随后换行输出 Act_Finished。
 
 - 模式判定逻辑：
     -   [basic]：仅涉及文件读写、命令运行等无需 GUI 交互的任务。
     -   [pro]：涉及获取屏幕截图、打开特定软件界面、填写表单、点击网页按钮、游戏交互等必须通过图形界面完成的任务。
+    -   [chat]:不涉及任何工具、标记符调用、任务执行，仅和用户聊天或回答用户的问题。
 
 - 执行策略：
     1.  命令行优先：即使在 [pro] 模式下，如果能用 CMD/PowerShell 命令完成（如启动程序、删除/移动文件操作），必须优先使用 exec 或 popen，以减少 GUI 识别错误。
@@ -77,6 +82,13 @@ actions_history = [
 - 猫娘交互规范：
     - 同 Basic 模式，但在操作 GUI 时，语气可以带有一点点“努力寻找目标”的可爱感。
 
+3. chat模式
+适用场景：不需要任何命令执行、工具调用，仅回答用户问题、提供建议、分析屏幕内容、聊天
+
+- 可用工具: 无
+- **重要**: 同时禁止使用任何标记符
+
+
 ️ 标记符系统
 
 你必须正确使用以下标记符来控制对话流程。
@@ -115,6 +127,8 @@ Task_Finished
 """}
 ]
 
+chat_history=[{"role" : "system"},{"content" : "you are a helpful assistant,你必须在每次回答完用户的问题前在第一行输出一个CHAT并换行再做出你的回答"}]
+
 def clear_ocr_cache():
     global actions_history
     for item in actions_history:
@@ -131,14 +145,15 @@ def clear_ocr_cache():
                     item["content"] = parts[0] + "[OCR信息]:"
                         
 runtime = 0
-Pro = None
+mode = None
 def get_actions(prompt):
     global actions_history
+    global chat_history
     global runtime
-    global Pro
+    global mode
     global model_name
     clear_ocr_cache()
-    if runtime != 0 and Pro == 1:
+    if runtime != 0 and mode == "[pro]":
         screen = ScreenCapture()
         raw = screen.grab_screen_base64()
         image64,scr_info = raw
@@ -187,7 +202,7 @@ def get_actions(prompt):
         })
 
 
-    elif runtime !=0 and Pro == 0 :
+    elif runtime !=0 and mode == "[basic]" :
         with open(".\\cache\\cmd_history.txt","r",encoding='utf-8') as f:
             cmd_history = f.read()
             f.close()
@@ -221,6 +236,35 @@ def get_actions(prompt):
                 {"type": "text", "text": prompt + f"命令执行历史:{cmd_history}\n文件读取结果:{file}\n当前工作目录:{pwd},目录下的文件:{files_under_current_dir},系统用户名{user_name}"},
             ]
         })
+    
+
+    elif  mode == "[chat]" :
+        if runtime == 2:
+            chat_history.append({"role": "user", "content": prompt})
+        if runtime > 2:
+            chat = input("继续聊天:")
+            chat_history.append({"role": "user", "content": chat})
+        if chat_base_url != "":
+            chat_cli = OpenAI(
+                api_key=chat_api_key,
+                base_url=chat_base_url
+            )
+            response = chat_cli.chat.completions.create(
+                model=chat_model_name,
+                temperature=0.7,
+                messages=chat_history
+            )
+        else :
+            response = client.chat.completions.create(
+                model=model_name,
+                temperature=0.7,
+                messages=chat_history
+            )
+        chat_reply = response.choices[0].message.content
+        actions_history.append({"role": "assistant", "content": chat_reply})
+        return chat_reply
+    
+    
     else :
         actions_history.append({
             "role": "user",
@@ -237,11 +281,14 @@ def get_actions(prompt):
         agent_reply = response.choices[0].message.content
         actions_history.append({"role": "assistant", "content": agent_reply})
         if "[pro]" in agent_reply :
-            Pro = 1
+            mode = "[pro]"
             print('这是一个图形化任务')
         elif "[basic]" in agent_reply :
-            Pro = 0
+            mode = "[basic]"
             print('这是一个命令行任务')
+        elif "[chat]" in agent_reply :
+            mode = "[chat]"
+            print('聊聊天')
         return agent_reply
     except Exception as e:
         return f"主程序出错惹: {str(e)}"
@@ -256,10 +303,12 @@ while feedback != "TASK_COMPLETED":
         break
     parser =  AgentParser()
     feedback =parser.parse_and_execute(output)
+    if "CHAT" in str(feedback):
+        print(output)
     if feedback == "WAIT_FOR_NEXT_STEP"  :
         sleep(1)
         continue
     if "ERROR_COMMAND" in str(feedback):
         actions_history.append({"role": "user", "content": [{"type": "text", "text":f"你输出的命令有错误{feedback}"}]})
 
-print(f'任务完成,共计{runtime}步')
+print(f'任务完成,共计{runtime +1 }步')

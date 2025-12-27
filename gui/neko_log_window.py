@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import QTextEdit, QApplication, QPushButton
-from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve, QRect, pyqtSignal, pyqtSlot
+from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve, QRect
 from PyQt6.QtGui import QIcon, QPixmap
 import sys
 

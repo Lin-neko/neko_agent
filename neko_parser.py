@@ -20,8 +20,10 @@ class AgentParser:
     def parse_and_execute(self, llm_output):
         remaining_output = llm_output.strip()
 
-        if "[pro]" in remaining_output or "[basic]" in remaining_output:
+        if "[pro]" in remaining_output or "[basic]" in remaining_output or "[chat]" in remaining_output:
             return "WAIT_FOR_NEXT_STEP"
+        if "CHAT" in remaining_output:
+            return "CHAT"
         
         while remaining_output:
             matched = False
