@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import QTextEdit, QApplication, QPushButton
-from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve, QRect
+from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve, QRect, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QIcon, QPixmap
 import sys
 
@@ -41,13 +41,14 @@ class NekoLogWindow(QTextEdit):
                 background: none;
             }
         """)
+        self.setRoundedCorners()
 
         self.is_collapsed = False
 
-        self.log_history = [] # 用于存储日志内容
+        self.log_history = [] 
 
         self.collapse_button = QPushButton("", self)
-        self.collapse_button.setObjectName("collapseButton") # 添加objectName
+        self.collapse_button.setObjectName("collapseButton") 
         self.original_button_geometry = QRect(int(self.width() * 0.8), int(self.height() *0.05 ), 20, 20)
         self.collapse_button.setGeometry(self.original_button_geometry)
         self.collapse_button.setStyleSheet("""
@@ -65,8 +66,8 @@ class NekoLogWindow(QTextEdit):
         self.collapse_button.clicked.connect(self.toggle_collapse)
 
     def append_log(self, message):
-        self.log_history.append(message) # 将日志添加到历史记录
-        if not self.is_collapsed: # 只有在未折叠状态下才显示
+        self.log_history.append(message) 
+        if not self.is_collapsed: 
             self.append(message)
             self.verticalScrollBar().setValue(self.verticalScrollBar().maximum())
 
@@ -76,15 +77,13 @@ class NekoLogWindow(QTextEdit):
         self.animation.setEasingCurve(QEasingCurve.Type.InOutQuad)
 
         if self.is_collapsed:
-            # 展开
             self.animation.setStartValue(self.geometry())
             self.animation.setEndValue(self.original_geometry)
             self.is_collapsed = False
-            self.collapse_button.setGeometry(self.original_button_geometry) # 按钮恢复到原始位置
-            self.verticalScrollBar().show() # 显示滚动条
+            self.collapse_button.setGeometry(self.original_button_geometry) 
+            self.verticalScrollBar().show() 
             self.collapse_button.setIcon(QIcon(QPixmap("gui/img/log_expand.PNG")))
             self.collapse_button.setIconSize(self.collapse_button.size())
-            # 恢复日志窗口的原始样式
             self.setStyleSheet("""
                 QTextEdit {
                     background-color: #282c34; /* 深灰色背景 */
@@ -113,7 +112,6 @@ class NekoLogWindow(QTextEdit):
                     background: none;
                 }
             """)
-            # 恢复按钮的原始样式
             self.collapse_button.setStyleSheet("""
                 QPushButton#collapseButton {
                     background-color: transparent;
@@ -124,9 +122,8 @@ class NekoLogWindow(QTextEdit):
                     background-color: #e0e0e0;
                 }
             """)
-            self.animation.finished.connect(self.restore_log_content) # 动画结束后恢复日志内容
+            self.animation.finished.connect(self.restore_log_content)
         else:
-            # 折叠
             collapsed_size = 20
             collapsed_geometry = QRect(self.x() + self.collapse_button.x(),
                                        self.y() + self.collapse_button.y(),
@@ -134,13 +131,11 @@ class NekoLogWindow(QTextEdit):
             self.animation.setStartValue(self.geometry())
             self.animation.setEndValue(collapsed_geometry)
             self.is_collapsed = True
-            self.document().clear() # 清空内容，使其不可见
-            self.verticalScrollBar().hide() # 隐藏滚动条
-            # 调整按钮位置，使其在折叠状态下居中
+            self.document().clear() 
+            self.verticalScrollBar().hide() 
             self.collapse_button.setGeometry(0, 0, collapsed_size, collapsed_size)
             self.collapse_button.setIcon(QIcon(QPixmap("gui/img/log_fold.PNG")))
             self.collapse_button.setIconSize(self.collapse_button.size())
-            # 修改日志窗口的样式，使其变为圆形
             self.setStyleSheet(f"""
                 QTextEdit {{
                     background-color: #282c34;
@@ -183,6 +178,29 @@ class NekoLogWindow(QTextEdit):
             self.append(message)
         self.verticalScrollBar().setValue(self.verticalScrollBar().maximum())
 
+    def setRoundedCorners(self):
+        from PyQt6.QtGui import QRegion
+        radius = 5
+        path = QRegion(0, 0, self.width(), self.height(), QRegion.RegionType.Rectangle)
+        rounded = QRegion(0, 0, self.width(), self.height(), QRegion.RegionType.Ellipse)
+        corner = QRegion(0, 0, radius * 2, radius * 2, QRegion.RegionType.Ellipse)
+        
+        top_left = corner
+        top_right = corner.translated(self.width() - radius * 2, 0)
+        bottom_left = corner.translated(0, self.height() - radius * 2)
+        bottom_right = corner.translated(self.width() - radius * 2, self.height() - radius * 2)
+        
+        rounded_region = top_left.united(top_right).united(bottom_left).united(bottom_right)
+        rectangular_region = QRegion(0, radius, self.width(), self.height() - radius * 2)
+        rounded_region = rounded_region.united(rectangular_region)
+        rectangular_region = QRegion(radius, 0, self.width() - radius * 2, self.height())
+        rounded_region = rounded_region.united(rectangular_region)
+        
+        self.setMask(rounded_region)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self.setRoundedCorners()
+
     def clear_log(self):
         self.clear()
-

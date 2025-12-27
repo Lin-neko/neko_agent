@@ -1,7 +1,8 @@
 from PyQt6.QtWidgets import QTextEdit, QApplication , QPushButton, QLabel
 from PyQt6.QtCore import Qt, QRect, QEventLoop, QPropertyAnimation
-from PyQt6.QtGui import QPixmap
+from PyQt6.QtGui import QPixmap, QRegion
 import sys
+from dark_mode_manager import dark_or_light
 
 class NekoPMS(QTextEdit):
     def __init__(self, parent=None):
@@ -143,8 +144,122 @@ class NekoPMS(QTextEdit):
         self.file_edit_icon.hide()
         self.popen_icon.hide()
 
+    def _update_style_based_on_background(self):
+        """根据屏幕背景亮度更新样式表"""
+        # 获取窗口中心坐标
+        x = self.x() + self.width() // 2
+        y = self.y() + self.height() // 2
+        dark_mode = dark_or_light(x, y)
+        
+        if dark_mode == "Light":
+            # 浅色主题
+            text_color = "#000000"
+            bg_color = "#ffffff"
+            border_color = "#cccccc"
+            scrollbar_bg = "#f0f0f0"
+            scrollbar_handle = "#c0c0c0"
+            approve_bg = "#e0e0e0"
+            approve_text = "#333333"
+            approve_hover = "#d0d0d0"
+            approve_pressed = "#c0c0c0"
+            reject_bg = "#f0f0f0"
+            reject_text = "#666666"
+            reject_hover = "#e0e0e0"
+            reject_pressed = "#d0d0d0"
+        else:
+            # 深色主题（保持原有深色样式）
+            text_color = "#abb2bf"
+            bg_color = "#282c34"
+            border_color = "#3e4452"
+            scrollbar_bg = "#282c34"
+            scrollbar_handle = "#4b5263"
+            approve_bg = "#abb2bf"
+            approve_text = "#3e4452"
+            approve_hover = "#787d86"
+            approve_pressed = "#282c34"
+            reject_bg = "#3e4452"
+            reject_text = "#abb2bf"
+            reject_hover = "#4b5263"
+            reject_pressed = "#282c34"
+        
+        # 更新主窗口样式
+        self.setStyleSheet(f"""
+            QTextEdit {{
+                background-color: {bg_color};
+                color: {text_color};
+                font-family: "Cascadia Code", "Consolas", "Monaco", "Courier New", monospace;
+                font-size: 10pt;
+                border: 1px solid {border_color};
+                border-radius: 5px;
+                padding: 5px;
+            }}
+            QScrollBar:vertical {{
+                border: none;
+                background: {scrollbar_bg};
+                width: 10px;
+                margin: 0px 0px 0px 0px;
+            }}
+            QScrollBar::handle:vertical {{
+                background: {scrollbar_handle};
+                min-height: 20px;
+                border-radius: 5px;
+            }}
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
+                background: none;
+            }}
+            QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {{
+                background: none;
+            }}
+        """)
+        
+        # 更新按钮样式
+        self.approve_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {approve_bg};
+                color: {approve_text};
+                font-family: "Cascadia Code", "Consolas", "Monaco", "Courier New", monospace;
+                border: 1px solid {border_color};
+                border-radius: 10px;
+                font-size: 10pt;
+            }}
+            QPushButton:hover {{
+                background-color: {approve_hover};
+            }}
+            QPushButton:pressed {{
+                background-color: {approve_pressed};
+            }}
+        """)
+        
+        self.reject_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {reject_bg};
+                color: {reject_text};
+                font-family: "Cascadia Code", "Consolas", "Monaco", "Courier New", monospace;
+                border: 1px solid {border_color};
+                border-radius: 10px;
+                font-size: 10pt;
+            }}
+            QPushButton:hover {{
+                background-color: {reject_hover};
+            }}
+            QPushButton:pressed {{
+                background-color: {reject_pressed};
+            }}
+        """)
+        
+        # 更新标签样式
+        self.label.setStyleSheet(f"""
+            QLabel {{
+                color: {text_color};
+                font-family: "Cascadia Code", "Consolas", "Monaco", "Courier New", monospace;
+                font-size: 10pt;
+            }}
+        """)
+
     def _wait_for_decision(self):
         self.setWindowOpacity(0.0)
+        # 在显示前更新样式
+        self._update_style_based_on_background()
         self.show()
         
         self.animation = QPropertyAnimation(self, b"windowOpacity")
@@ -170,6 +285,31 @@ class NekoPMS(QTextEdit):
 
         self._hide_all_icons()
         return self.result
+
+    def setRoundedCorners(self):
+        """设置窗口圆角"""
+        radius = 5
+        path = QRegion(0, 0, self.width(), self.height(), QRegion.RegionType.Rectangle)
+        rounded = QRegion(0, 0, self.width(), self.height(), QRegion.RegionType.Ellipse)
+        corner = QRegion(0, 0, radius * 2, radius * 2, QRegion.RegionType.Ellipse)
+        
+        top_left = corner
+        top_right = corner.translated(self.width() - radius * 2, 0)
+        bottom_left = corner.translated(0, self.height() - radius * 2)
+        bottom_right = corner.translated(self.width() - radius * 2, self.height() - radius * 2)
+        
+        rounded_region = top_left.united(top_right).united(bottom_left).united(bottom_right)
+        rectangular_region = QRegion(0, radius, self.width(), self.height() - radius * 2)
+        rounded_region = rounded_region.united(rectangular_region)
+        rectangular_region = QRegion(radius, 0, self.width() - radius * 2, self.height())
+        rounded_region = rounded_region.united(rectangular_region)
+        
+        self.setMask(rounded_region)
+
+    def resizeEvent(self, event):
+        """重写resizeEvent以在窗口大小改变时更新圆角"""
+        super().resizeEvent(event)
+        self.setRoundedCorners()
 
     def cmd_exec_check(self, cmd):
         self.cmd_icon.show()

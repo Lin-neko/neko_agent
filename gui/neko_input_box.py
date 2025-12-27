@@ -2,6 +2,7 @@ import sys
 from PyQt6.QtWidgets import QApplication, QWidget, QLineEdit, QHBoxLayout, QPushButton, QGraphicsOpacityEffect
 from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve, QRect, QTimer, QEventLoop
 from PyQt6.QtGui import QIcon, QPixmap, QColor, QScreen
+from dark_mode_manager import dark_or_light
 
 class InputBox(QWidget):
     def __init__(self, parent=None):
@@ -108,41 +109,17 @@ class InputBox(QWidget):
         super().showEvent(event)
 
     def _update_style_based_on_background(self):
-        screen = QApplication.primaryScreen()
-        global_pos = self.mapToGlobal(self.rect().topLeft())
-        global_width = self.width()
-        global_height = self.height()
-        full_screen_pixmap = screen.grabWindow(0)
-        
-        if not full_screen_pixmap.isNull():
-            # 从整个屏幕的像素图中裁剪出输入框区域
-            pixmap = full_screen_pixmap.copy(global_pos.x(), global_pos.y(), global_width, global_height)
-            
-            # 获取中心像素的颜色
-            center_x = pixmap.width() // 2
-            center_y = pixmap.height() // 2
-            
-            if not pixmap.isNull() and center_x < pixmap.width() and center_y < pixmap.height():
-                color = QColor(pixmap.toImage().pixel(center_x, center_y))
-                
-                # 计算亮度 
-                luminance = (0.299 * color.red() + 0.587 * color.green() + 0.114 * color.blue())
-            else:
-                luminance = 255 # 强制为浅色背景，避免亮度为0.0
+        dark_mode = dark_or_light(self.x() + self.width() // 2 , self.y() + self.height() // 2)
+        if dark_mode == "Light" :
+            text_color = "black"
+            bg_color_input = "rgba(255, 255, 255, 240)"
+            bg_color_button = "rgba(255, 255, 255, 240)"
+            hover_color_button = "rgba(255, 255, 255, 255)"
         else:
-            luminance = 255 # 强制为浅色背景，避免亮度为0.0
-            if luminance < 128:  # 背景是深色
-                # 输入框应该显示为浅色，以便在深色背景上可见
-                text_color = "black"
-                bg_color_input = "rgba(255, 255, 255, 240)" # 半透明浅色
-                bg_color_button = "rgba(255, 255, 255, 240)"
-                hover_color_button = "rgba(255, 255, 255, 255)"
-            else:  # 背景是浅色
-                # 输入框应该显示为深色，以便在浅色背景上可见
-                text_color = "white"
-                bg_color_input = "rgba(0, 0, 0, 180)" # 半透明深色
-                bg_color_button = "rgba(0, 0, 0, 180)"
-                hover_color_button = "rgba(0, 0, 0, 220)"
+            text_color = "white"
+            bg_color_input = "rgba(0, 0, 0, 180)"
+            bg_color_button = "rgba(0, 0, 0, 180)"
+            hover_color_button = "rgba(0, 0, 0, 220)"
 
             self.input_field.setStyleSheet(f"""
                 QLineEdit {{
