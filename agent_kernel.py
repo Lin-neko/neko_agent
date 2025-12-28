@@ -1,20 +1,30 @@
 from openai import OpenAI
+import json
 from neko_vision import ScreenCapture
 from neko_parser import AgentParser
 from time import sleep
 import subprocess
-client = OpenAI(
-    api_key="sk-NK356ZHX6IA7MP1e4C7XMJlVDQBpUuPpRo2MhdJWPBKns4QS",
-    base_url="https://yunwu.ai/v1"
-)
-model_name = "gemini-2.5-flash-nothinking"
-
-chat_base_url = ""
-chat_api_key = ""
-chat_model_name = ""
-add_screen_on_chat = 1
 grid = ScreenCapture()
 temp_shot = grid.grab_screen_base64(log=False)
+
+
+with open("config.json", "r", encoding='utf-8') as f:
+    config = json.load(f)
+ai_base_url = config["ai_settings"]["base_url"]
+ai_api_key = config["ai_settings"]["api_key"]
+ai_model_name = config["ai_settings"]["model_name"]
+chat_base_url = config["chat_settings"]["chat_url"]
+chat_api_key = config["chat_settings"]["chat_api_key"]
+chat_model_name = config["chat_settings"]["chat_model_name"]
+chat_image = config["chat_settings"]["chat_image"]
+chat_prompt = config["chat_settings"]["chat_prompt"]
+
+client = OpenAI(
+    api_key= ai_api_key,
+    base_url= ai_base_url
+)
+model_name = ai_model_name
+
 # 清除缓存文件
 cache_files = [
     '.\\cache\\cmd_history.txt',
@@ -128,7 +138,7 @@ Task_Finished
 """}
 ]
 
-chat_history=[{"role" : "system" , "content" : "you are a helpful assistant,你必须在每次回答完用户的问题前在第一行输出一个CHAT并换行再做出你的回答"}]
+chat_history=[{"role" : "system" , "content" : f"{chat_prompt},你必须在每次回答完用户的问题前在第一行输出一个CHAT并换行再做出你的回答"}]
 
 def clear_ocr_cache():
     global actions_history
@@ -250,7 +260,7 @@ def get_actions(prompt):
         screen = ScreenCapture()
         if runtime == 2:
             chat_history.append({"role": "user", "content": prompt})
-            if add_screen_on_chat == 1:
+            if chat_image == True:
                 raw = screen.grab_screen_base64()
                 image64,scr_info = raw
                 chat_history.append({"role": "user","content": [{"type": "image_url","image_url": {"url": f"data:image/jpeg;base64,{image64}"}}]})
@@ -258,7 +268,7 @@ def get_actions(prompt):
         if runtime > 2:
             chat = input("继续聊天:")
             chat_history.append({"role": "user", "content": chat})
-            if add_screen_on_chat == 1:
+            if chat_image == True:
                 raw = screen.grab_screen_base64()
                 image64,scr_info = raw
                 chat_history.append({"role": "user","content": [{"type": "image_url","image_url": {"url": f"data:image/jpeg;base64,{image64}"}}]})

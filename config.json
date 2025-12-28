@@ -1,8 +1,8 @@
 {
     "ai_settings": {
-        "base_url": "123qweqw",
-        "api_key": "12ewqw",
-        "model_name": "12q"
+        "base_url": "https://yunwu.ai/v1",
+        "api_key": "sk-NK356ZHX6IA7MP1e4C7XMJlVDQBpUuPpRo2MhdJWPBKns4QS",
+        "model_name": "gemini-2.0-flash"
     },
     "neko_vision_settings": {
         "line_width": "11123",
@@ -11,12 +11,13 @@
     },
     "dark_mode": "自动",
     "chat_settings": {
-        "chat_url": "123",
-        "chat_api_key": "sk123",
-        "chat_model_name": "gpt78",
+        "chat_url": "https://api.deepseek.com",
+        "chat_api_key": "sk-1c1179cffcbf4d47aa81f6dea120f9bb",
+        "chat_model_name": "deepseek-chat",
         "chat_agent_name": "nk",
         "chat_user_name": "adm",
-        "chat_image": false
+        "chat_image": false,
+        "chat_prompt": "you are a helpful assistant"
     },
-    "anti_grab": true
+    "anti_grab": false
 }

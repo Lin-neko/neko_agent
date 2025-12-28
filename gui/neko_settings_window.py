@@ -76,6 +76,11 @@ class NekoSettingsWindow(QWidget):
 
         self.chat_model_name, self.chat_model_name_label, self.chat_model_name_line_edit = self._create_labeled_input_field("Chat模式下的模型名称:", "留空与agent使用同一模型")
         self.main_layout.addWidget(self.chat_model_name) 
+        
+        self.chat_prompt, self.chat_prompt_label, self.chat_prompt_line_edit = self._create_labeled_input_field("Chat模式下的系统提示词:", "也就是人物设定之类的")
+        self.main_layout.addWidget(self.chat_prompt) 
+        
+        
 
         self.chat_agent_name_setting , self.chat_agent_label , self.chat_agent_edit = self._create_labeled_input_field("Agent昵称:" , "agent的昵称")
         self.main_layout.addWidget(self.chat_agent_name_setting)
@@ -200,9 +205,11 @@ class NekoSettingsWindow(QWidget):
         current_config['chat_settings']['chat_url'] = settings.get('chat_url')
         current_config['chat_settings']['chat_api_key'] = settings.get('chat_api_key')
         current_config['chat_settings']['chat_model_name'] = settings.get('chat_model_name')
+        current_config['chat_settings']['chat_prompt'] = settings.get('chat_prompt')
         current_config['chat_settings']['chat_agent_name'] = settings.get('chat_agent_name')
         current_config['chat_settings']['chat_user_name'] = settings.get('chat_user_name')
         current_config['chat_settings']['chat_image'] = settings.get('chat_image')
+        
         current_config['anti_grab'] = settings.get('anti_grab')
 
         current_config['dark_mode'] = settings.get('darkmode')
@@ -241,6 +248,7 @@ class NekoSettingsWindow(QWidget):
                 self.chat_url_edit.setText(chat_settings.get('chat_url', ''))
                 self.chat_api_key_line_edit.setText(chat_settings.get('chat_api_key', ''))
                 self.chat_model_name_line_edit.setText(chat_settings.get('chat_model_name', ''))
+                self.chat_prompt_line_edit.setText(chat_settings.get('chat_prompt',''))
                 self.chat_agent_edit.setText(chat_settings.get('chat_agent_name', ''))
                 self.chat_user_edit.setText(chat_settings.get('chat_user_name', ''))
                 self.chat_image_setting_switch.setChecked(chat_settings.get('chat_image', False))
@@ -466,18 +474,22 @@ class NekoSettingsWindow(QWidget):
         self.base_url_label.setStyleSheet(label_style)
         self.api_key_label.setStyleSheet(label_style)
         self.model_name_label.setStyleSheet(label_style)
+
         self.divide_label.setStyleSheet(label_style)
         self.line_width_label.setStyleSheet(label_style)
         self.magnification_label.setStyleSheet(label_style)
+        
         self.chat_url_label.setStyleSheet(label_style)
         self.chat_key_label.setStyleSheet(label_style)
         self.chat_model_name_label.setStyleSheet(label_style)
+        self.chat_prompt_label.setStyleSheet(label_style) 
         self.chat_agent_label.setStyleSheet(label_style)
         self.chat_user_label.setStyleSheet(label_style)
         self.chat_image_settings.setStyleSheet(label_style)
         self.chat_avatar_label.setStyleSheet(label_style)
         self.agent_avatar_name_label.setStyleSheet(label_style)
         self.user_avatar_name_label.setStyleSheet(label_style)
+        
         self.anti_grab_label.setStyleSheet(label_style)
         input_style = f"""
             QLineEdit {{
@@ -497,14 +509,17 @@ class NekoSettingsWindow(QWidget):
         self.base_url_line_edit.setStyleSheet(input_style)
         self.api_key_line_edit.setStyleSheet(input_style)
         self.model_name_line_edit.setStyleSheet(input_style)
+        
         self.divede_edit.setStyleSheet(input_style)
         self.line_width_edit.setStyleSheet(input_style)
         self.magnification_edit.setStyleSheet(input_style)
+        
         self.chat_url_edit.setStyleSheet(input_style)
         self.chat_model_name_line_edit.setStyleSheet(input_style)
         self.chat_api_key_line_edit.setStyleSheet(input_style)
         self.chat_agent_edit.setStyleSheet(input_style)
         self.chat_user_edit.setStyleSheet(input_style)
+        self.chat_prompt_line_edit.setStyleSheet(input_style)
 
         combobox_style = f"""
             QComboBox {{
@@ -609,6 +624,7 @@ class NekoSettingsWindow(QWidget):
             "chat_url": self.chat_url_edit.text(),
             "chat_api_key": self.chat_api_key_line_edit.text(),
             "chat_model_name": self.chat_model_name_line_edit.text(),
+            "chat_prompt":self.chat_prompt_line_edit.text(),
             "chat_agent_name": self.chat_agent_edit.text(),
             "chat_user_name": self.chat_user_edit.text(),
             "chat_image": self.chat_image_setting_switch.isChecked(),
@@ -664,14 +680,3 @@ class NekoSettingsWindow(QWidget):
         self.show()
         self._event_loop = QEventLoop()
         self._event_loop.exec()
-
-        
-
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = NekoSettingsWindow()
-    window.get_settings()
-
-        
-    sys.exit(app.exec())
