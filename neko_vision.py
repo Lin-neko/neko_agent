@@ -1,6 +1,7 @@
 import sys
 from PyQt6.QtWidgets import QApplication
 import base64
+import json
 from io import BytesIO
 from PIL import Image, ImageDraw
 from wechat_ocr.ocr_manager import OcrManager, OCR_MAX_TASK_ID
@@ -8,14 +9,16 @@ from wechat_ocr.ocr_manager import OcrManager, OCR_MAX_TASK_ID
 
 class ScreenCapture:
     def __init__(self):
+        with open("config.json", "r", encoding='utf-8') as f:
+            config = json.load(f)
         if not QApplication.instance():
             self.app = QApplication(sys.argv)
         else:
             self.app = QApplication.instance()
         self.line_color = "red" #网格线颜色
-        self.line_width = 1 #网格线粗度
-        self.divide = 16 #x等分 划分越多 Agent可能越容易判断坐标 但是过多的划分反而容易出现误判
-        self.magnification = 3 #缩小倍率 高分屏可以填大一点 节省 token
+        self.line_width = int(config["neko_vision_settings"]["line_width"]) #网格线粗度
+        self.divide = int(config["neko_vision_settings"]["divide"]) #x等分 划分越多 Agent可能越容易判断坐标 但是过多的划分反而容易出现误判
+        self.magnification = int(config["neko_vision_settings"]["magnification"]) #缩小倍率 高分屏可以填大一点 节省 token
     def grab_screen_base64(self,debug=0,log=True):
         screen = self.app.primaryScreen()
         pixmap = screen.grabWindow() 

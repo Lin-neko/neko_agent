@@ -5,9 +5,9 @@
         "model_name": "gemini-2.0-flash"
     },
     "neko_vision_settings": {
-        "line_width": "11123",
-        "divide": "1123",
-        "magnification": "112"
+        "line_width": "1",
+        "divide": "10",
+        "magnification": "2"
     },
     "dark_mode": "自动",
     "chat_settings": {
