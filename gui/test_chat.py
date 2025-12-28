@@ -6,6 +6,7 @@ from neko_chat_window import NekoChatWindow
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     input_box = InputBox()
+    input_box.set_mode("chat")
     chatapp = QApplication(sys.argv)
     window = NekoChatWindow()
     window.show()

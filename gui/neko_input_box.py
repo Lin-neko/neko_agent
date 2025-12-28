@@ -5,19 +5,30 @@ from PyQt6.QtGui import QIcon, QPixmap, QColor, QScreen
 from dark_mode_manager import dark_or_light
 
 class InputBox(QWidget):
+    mode = 'normal'
+    def set_mode(self, mode_value):
+        self.mode = mode_value
+        self.update_placeholder_text()
+
+    def update_placeholder_text(self):
+        if self.mode == 'normal':
+            self.input_field.setPlaceholderText("给Neko下达任务吧~(回车发送,输入空内容或按左侧按键取消)")
+        elif self.mode == 'chat':
+            self.input_field.setPlaceholderText("发送信息(回车发送,输入空内容或按左侧按键取消)")
+
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.mode = 'normal'
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        self._result = None 
+        self._result = None
         self._app = QApplication.instance() if QApplication.instance() else QApplication(sys.argv)
 
         self.main_layout = QHBoxLayout(self)
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(30)
-
         self.input_field = QLineEdit(self)
-        self.input_field.setPlaceholderText("给Neko下达任务吧~(输入空内容取消)")
+        self.update_placeholder_text()
         self.input_field.setStyleSheet("""
             QLineEdit {
                 background-color: rgba(255, 255, 255, 240);
@@ -30,14 +41,14 @@ class InputBox(QWidget):
         """)
         self.input_field.returnPressed.connect(self.on_return_pressed)
 
-        self.send_button = QPushButton(self)
-        send_icon_path = "gui/img/send.png"
+        self.cancel_button = QPushButton(self)
+        send_icon_path = "gui/img/close_light.png"
         send_pixmap = QPixmap(send_icon_path)
         send_icon = QIcon(send_pixmap)
-        self.send_button.setIcon(send_icon)
-        self.send_button.setIconSize(self.send_button.size())
+        self.cancel_button.setIcon(send_icon)
+        self.cancel_button.setIconSize(self.cancel_button.size())
 
-        self.send_button.setStyleSheet("""
+        self.cancel_button.setStyleSheet("""
             QPushButton {
                 background-color: rgba(255, 255, 255, 240);
                 border-radius: 20px; 
@@ -47,10 +58,10 @@ class InputBox(QWidget):
                 background-color: rgba(255, 255, 255, 255); 
             }
         """)
-        self.send_button.clicked.connect(self.on_return_pressed)
+        self.cancel_button.clicked.connect(self.on_cancel_clicked)
 
         self.main_layout.addWidget(self.input_field)
-        self.main_layout.addWidget(self.send_button)
+        self.main_layout.addWidget(self.cancel_button)
         self.setLayout(self.main_layout)
 
         self.animation = QPropertyAnimation(self, b"geometry")
@@ -70,13 +81,13 @@ class InputBox(QWidget):
         self.exit_animation.setEasingCurve(QEasingCurve.Type.OutCubic)
         self.exit_animation.finished.connect(self._finish_exit)
 
-        self.send_button_opacity_effect = QGraphicsOpacityEffect(self.send_button)
-        self.send_button.setGraphicsEffect(self.send_button_opacity_effect)
+        self.send_button_opacity_effect = QGraphicsOpacityEffect(self.cancel_button)
+        self.cancel_button.setGraphicsEffect(self.send_button_opacity_effect)
         self.send_button_opacity_animation = QPropertyAnimation(self.send_button_opacity_effect, b"opacity")
         self.send_button_opacity_animation.setDuration(400)
         self.send_button_opacity_animation.setEasingCurve(QEasingCurve.Type.OutCubic)
 
-        self.send_button_exit_animation = QPropertyAnimation(self.send_button, b"geometry")
+        self.send_button_exit_animation = QPropertyAnimation(self.cancel_button, b"geometry")
         self.send_button_exit_animation.setDuration(400)
         self.send_button_exit_animation.setEasingCurve(QEasingCurve.Type.OutCubic)
 
@@ -97,13 +108,13 @@ class InputBox(QWidget):
             self.initial_pos_set = True
             self.input_field.setFocus() 
             btn_width = self.input_field.height()
-            self.send_button.setFixedSize(btn_width , btn_width)
-            self.send_button.setStyleSheet(self.send_button.styleSheet() + f"""
+            self.cancel_button.setFixedSize(btn_width , btn_width)
+            self.cancel_button.setStyleSheet(self.cancel_button.styleSheet() + f"""
                 QPushButton {{
                     border-radius: {btn_width // 2}px;
                 }}
             """)
-            self.send_button.setIconSize(self.send_button.size())
+            self.cancel_button.setIconSize(self.cancel_button.size())
 
         self._update_style_based_on_background()
         super().showEvent(event)
@@ -133,7 +144,7 @@ class InputBox(QWidget):
             """)
             
             btn_width = self.input_field.height()
-            self.send_button.setStyleSheet(f"""
+            self.cancel_button.setStyleSheet(f"""
                 QPushButton {{
                     background-color: {bg_color_button};
                     border-radius: {btn_width // 2}px; 
@@ -143,11 +154,13 @@ class InputBox(QWidget):
                     background-color: {hover_color_button}; 
                 }}
             """)
-        
     def on_return_pressed(self):
         self._result = self.input_field.text()
         self._start_exit_animation()
+
+    def on_cancel_clicked(self):
         self.input_field.clear()
+        self._start_exit_animation()
 
     def _start_exit_animation(self):
         start_rect = self.geometry()
@@ -160,7 +173,7 @@ class InputBox(QWidget):
         self.opacity_animation.setEndValue(0.0)
         self.opacity_animation.start()
 
-        btn_start_rect = self.send_button.geometry()
+        btn_start_rect = self.cancel_button.geometry()
         btn_end_rect = QRect(btn_start_rect.x() + btn_start_rect.width() //2 , 0 , 0, 0)
         self.send_button_exit_animation.setStartValue(btn_start_rect)
         self.send_button_exit_animation.setEndValue(btn_end_rect)
@@ -180,6 +193,6 @@ class InputBox(QWidget):
         self.show()
         self._event_loop = QEventLoop()
         self._event_loop.exec()
-        if self._result == "" :
-            return "Canceled"
+        if self._result == "":
+            return None
         return self._result

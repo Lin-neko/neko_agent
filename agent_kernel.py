@@ -12,6 +12,7 @@ model_name = "gemini-2.5-flash-nothinking"
 chat_base_url = ""
 chat_api_key = ""
 chat_model_name = ""
+add_screen_on_chat = 1
 grid = ScreenCapture()
 temp_shot = grid.grab_screen_base64(log=False)
 # 清除缓存文件
@@ -246,11 +247,21 @@ def get_actions(prompt):
     
 
     elif  mode == "[chat]" :
+        screen = ScreenCapture()
         if runtime == 2:
             chat_history.append({"role": "user", "content": prompt})
+            if add_screen_on_chat == 1:
+                raw = screen.grab_screen_base64()
+                image64,scr_info = raw
+                chat_history.append({"role": "user","content": [{"type": "image_url","image_url": {"url": f"data:image/jpeg;base64,{image64}"}}]})
+
         if runtime > 2:
             chat = input("继续聊天:")
             chat_history.append({"role": "user", "content": chat})
+            if add_screen_on_chat == 1:
+                raw = screen.grab_screen_base64()
+                image64,scr_info = raw
+                chat_history.append({"role": "user","content": [{"type": "image_url","image_url": {"url": f"data:image/jpeg;base64,{image64}"}}]})
         if chat_base_url != "":
             chat_cli = OpenAI(
                 api_key=chat_api_key,

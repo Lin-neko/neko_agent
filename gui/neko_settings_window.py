@@ -1,7 +1,7 @@
 import sys
 import json
 import os
-from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QLabel, QPushButton, QComboBox , QScrollArea
+from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QLabel, QPushButton, QComboBox , QScrollArea, QCheckBox
 from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve, QRect, QEventLoop , QTimer
 from dark_mode_manager import dark_or_light
 
@@ -21,7 +21,7 @@ class NekoSettingsWindow(QWidget):
         
         self.overall_layout = QVBoxLayout(self) 
         self.overall_layout.setContentsMargins(20, 20, 20, 20)
-        self.overall_layout.setSpacing(15)
+        self.overall_layout.setSpacing(20)
 
         self.title_label = QLabel("Neko Agent 设置", self)
         self.title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -86,16 +86,15 @@ class NekoSettingsWindow(QWidget):
         self.chat_avatar_setting , self.chat_avatar_label = self._create_labeled_input_field("头像设置")
         self.main_layout.addWidget(self.chat_avatar_setting)
 
-        self.avatar_layout = QHBoxLayout()
-
         # 用户头像
         self.user_avatar_container = QWidget()
-        self.user_avatar_hlayout = QHBoxLayout(self.user_avatar_container)
+        self.user_avatar_hlayout = QVBoxLayout(self.user_avatar_container)
         self.user_avatar_layout = QVBoxLayout()
         self.user_avatar_label = QLabel()
         user_avatar_path = os.path.join("gui", "img", "user_avatar.png")
         from PyQt6.QtGui import QPixmap
         self.user_avatar_label.setPixmap(QPixmap(user_avatar_path).scaled(50, 50, Qt.AspectRatioMode.KeepAspectRatio))
+        self.user_avatar_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.user_avatar_layout.addWidget(self.user_avatar_label)
         self.user_avatar_name_label = QLabel("用户头像")
         self.user_avatar_name_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -103,15 +102,15 @@ class NekoSettingsWindow(QWidget):
         self.user_avatar_hlayout.addLayout(self.user_avatar_layout)
         self.user_avatar_button = QPushButton("选择文件")
         self.user_avatar_hlayout.addWidget(self.user_avatar_button)
-        self.avatar_layout.addWidget(self.user_avatar_container)
 
         # Agent头像
         self.agent_avatar_container = QWidget()
-        self.agent_avatar_hlayout = QHBoxLayout(self.agent_avatar_container)
+        self.agent_avatar_hlayout = QVBoxLayout(self.agent_avatar_container)
         self.agent_avatar_layout = QVBoxLayout()
         self.agent_avatar_label = QLabel()
         agent_avatar_path = os.path.join("gui", "img", "agent_avatar.JPG")
         self.agent_avatar_label.setPixmap(QPixmap(agent_avatar_path).scaled(50, 50, Qt.AspectRatioMode.KeepAspectRatio))
+        self.agent_avatar_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.agent_avatar_layout.addWidget(self.agent_avatar_label)
         self.agent_avatar_name_label = QLabel("Agent头像")
         self.agent_avatar_name_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -119,12 +118,36 @@ class NekoSettingsWindow(QWidget):
         self.agent_avatar_hlayout.addLayout(self.agent_avatar_layout)
         self.agent_avatar_button = QPushButton("选择文件")
         self.agent_avatar_hlayout.addWidget(self.agent_avatar_button)
-        self.avatar_layout.addWidget(self.agent_avatar_container)
 
         self.user_avatar_button.clicked.connect(self._on_user_avatar_button_clicked)
         self.agent_avatar_button.clicked.connect(self._on_agent_avatar_button_clicked)
 
-        self.main_layout.addLayout(self.avatar_layout)
+        avatar_layout = QHBoxLayout()
+        avatar_layout.addWidget(self.user_avatar_container)
+        avatar_layout.addWidget(self.agent_avatar_container)
+        self.main_layout.addLayout(avatar_layout)
+
+        self.chat_image_label = QLabel("在聊天时附带屏幕截图:")
+        self.chat_image_setting_switch = QCheckBox()
+        self.chat_image_settings = QWidget()
+        self.chat_image_layout = QHBoxLayout(self.chat_image_settings)
+        self.chat_image_layout.addWidget(self.chat_image_label)
+        self.chat_image_layout.addWidget(self.chat_image_setting_switch)
+        self.main_layout.addWidget(self.chat_image_settings)
+
+
+        self.other_setting_label = QLabel('其他设置', self.scroll_content_widget)
+        self.main_layout.addWidget(self.other_setting_label)
+        self.anti_grab_label = QLabel("控件反截图:")
+        self.anti_grab_setting_switch = QCheckBox()
+        self.anti_grab_settings = QWidget()
+        self.anti_grab_layout = QHBoxLayout(self.anti_grab_settings)
+        self.anti_grab_layout.addWidget(self.anti_grab_label)
+        self.anti_grab_layout.addWidget(self.anti_grab_setting_switch)
+        self.main_layout.addWidget(self.anti_grab_settings)
+        
+
+
 
         self.scroll_area.setWidget(self.scroll_content_widget)
         self.overall_layout.addWidget(self.scroll_area) 
@@ -179,6 +202,8 @@ class NekoSettingsWindow(QWidget):
         current_config['chat_settings']['chat_model_name'] = settings.get('chat_model_name')
         current_config['chat_settings']['chat_agent_name'] = settings.get('chat_agent_name')
         current_config['chat_settings']['chat_user_name'] = settings.get('chat_user_name')
+        current_config['chat_settings']['chat_image'] = settings.get('chat_image')
+        current_config['anti_grab'] = settings.get('anti_grab')
 
         current_config['dark_mode'] = settings.get('darkmode')
 
@@ -218,6 +243,8 @@ class NekoSettingsWindow(QWidget):
                 self.chat_model_name_line_edit.setText(chat_settings.get('chat_model_name', ''))
                 self.chat_agent_edit.setText(chat_settings.get('chat_agent_name', ''))
                 self.chat_user_edit.setText(chat_settings.get('chat_user_name', ''))
+                self.chat_image_setting_switch.setChecked(chat_settings.get('chat_image', False))
+                self.anti_grab_setting_switch.setChecked(config.get('anti_grab', False))
 
             except json.JSONDecodeError:
                 print(f"Error: config.json is malformed. Could not load settings.")
@@ -252,7 +279,7 @@ class NekoSettingsWindow(QWidget):
             screen_rect = screen.geometry()
             
             width = int(screen_rect.width() * 0.25)  
-            height = int(screen_rect.height() * 0.35)
+            height = int(screen_rect.height() * 0.5)
             
             x = (screen_rect.width() - width) // 2
             y = (screen_rect.height() - height) // 2
@@ -311,7 +338,7 @@ class NekoSettingsWindow(QWidget):
             },
             "button": {
                 "padding": "8px 16px",
-                "font-size": "14px",
+                "font-size": "12px",
                 "font-weight": "normal",
                 "border-radius": "4px", # Increased border-radius
                 "border": "1px solid",
@@ -370,7 +397,6 @@ class NekoSettingsWindow(QWidget):
         self.setStyleSheet(f"""
             QWidget {{
                 background-color: {theme_colors['bg_color']};
-                border: 1px solid {theme_colors['border_color']};
                 border-radius: 8px; /* Added border-radius to the main window */
             }}
             QScrollArea {{
@@ -422,10 +448,12 @@ class NekoSettingsWindow(QWidget):
                 margin-top: {base_styles['section_label']['margin-top']};
             }}
         """
+        #大标题label
         self.ai_setting_label.setStyleSheet(section_label_style)
         self.nv_setting_label.setStyleSheet(section_label_style)
         self.dark_mode_setting_label.setStyleSheet(section_label_style)
         self.chat_setting_label.setStyleSheet(section_label_style)
+        self.other_setting_label.setStyleSheet(section_label_style)
         
         label_style = f"""
             QLabel {{
@@ -446,7 +474,11 @@ class NekoSettingsWindow(QWidget):
         self.chat_model_name_label.setStyleSheet(label_style)
         self.chat_agent_label.setStyleSheet(label_style)
         self.chat_user_label.setStyleSheet(label_style)
-        
+        self.chat_image_settings.setStyleSheet(label_style)
+        self.chat_avatar_label.setStyleSheet(label_style)
+        self.agent_avatar_name_label.setStyleSheet(label_style)
+        self.user_avatar_name_label.setStyleSheet(label_style)
+        self.anti_grab_label.setStyleSheet(label_style)
         input_style = f"""
             QLineEdit {{
                 background-color: {theme_colors['input_bg']};
@@ -497,7 +529,33 @@ class NekoSettingsWindow(QWidget):
                 selection-background-color: {theme_colors['confirm_bg']};
             }}
         """
+        #选择框
         self.dark_mode_setting.setStyleSheet(combobox_style)
+
+
+
+        self.avatar_button_style = f"""
+            QPushButton {{
+                background-color: {theme_colors['cancel_bg']};
+                color: {theme_colors['cancel_text']};
+                padding: {base_styles['button']['padding']};
+                font-size: {base_styles['button']['font-size']};
+                font-weight: {base_styles['button']['font-weight']};
+                border: {base_styles['button']['border']} {theme_colors['cancel_border']};
+                border-radius: {base_styles['button']['border-radius']};
+            }}
+            QPushButton:hover {{
+                background-color: {theme_colors['cancel_hover']};
+                border-color: {theme_colors['cancel_border']};
+            }}
+            QPushButton:pressed {{
+                background-color: {theme_colors['cancel_pressed']};
+                border-color: {theme_colors['cancel_pressed']};
+            }}
+        """
+
+        self.user_avatar_button.setStyleSheet(self.avatar_button_style)
+        self.agent_avatar_button.setStyleSheet(self.avatar_button_style)
         
         self.confirm_button.setStyleSheet(f"""
             QPushButton {{
@@ -552,7 +610,9 @@ class NekoSettingsWindow(QWidget):
             "chat_api_key": self.chat_api_key_line_edit.text(),
             "chat_model_name": self.chat_model_name_line_edit.text(),
             "chat_agent_name": self.chat_agent_edit.text(),
-            "chat_user_name": self.chat_user_edit.text()
+            "chat_user_name": self.chat_user_edit.text(),
+            "chat_image": self.chat_image_setting_switch.isChecked(),
+            "anti_grab": self.anti_grab_setting_switch.isChecked()
         }
         self.save_settings_to_config(self._result)
         self._close_window()
