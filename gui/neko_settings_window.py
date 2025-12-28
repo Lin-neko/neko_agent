@@ -5,6 +5,12 @@ from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLi
 from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve, QRect, QEventLoop , QTimer
 from dark_mode_manager import dark_or_light
 
+class WheelEventComboBox(QComboBox):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+    def wheelEvent(self, event):
+        event.ignore()
 
 class NekoSettingsWindow(QWidget):
     def __init__(self, parent=None):
@@ -32,37 +38,93 @@ class NekoSettingsWindow(QWidget):
         
         self.ai_setting_label = QLabel('AI模型设置', self.scroll_content_widget)
         self.main_layout.addWidget(self.ai_setting_label)
-        # self.ai_setting_label.setStyleSheet("font-size: 16px; font-weight: bold") # Style will be applied in _update_style_based_on_background
 
-
-        base_url_container, self.base_url_label, self.base_url_line_edit = self._create_labeled_input_field("base_url:", "例如https://example.com/v1")
-        self.main_layout.addWidget(base_url_container) 
+        self.base_url_container, self.base_url_label, self.base_url_line_edit = self._create_labeled_input_field("base_url:", "例如https://example.com/v1")
+        self.main_layout.addWidget(self.base_url_container) 
         
-        api_key_container, self.api_key_label, self.api_key_line_edit = self._create_labeled_input_field("api_key:", "你的api_key")
-        self.main_layout.addWidget(api_key_container) 
+        self.api_key_container, self.api_key_label, self.api_key_line_edit = self._create_labeled_input_field("api_key:", "你的api_key")
+        self.main_layout.addWidget(self.api_key_container) 
         
-        model_name_container, self.model_name_label, self.model_name_line_edit = self._create_labeled_input_field("模型名称:" , "例如gpt-4o")
-        self.main_layout.addWidget(model_name_container)
+        self.model_name_container, self.model_name_label, self.model_name_line_edit = self._create_labeled_input_field("模型名称:" , "例如gpt-4o")
+        self.main_layout.addWidget(self.model_name_container)
 
 
         self.nv_setting_label = QLabel('Neko Vision设置', self.scroll_content_widget)
         self.main_layout.addWidget(self.nv_setting_label)
-        # self.nv_setting_label.setStyleSheet("font-size: 16px; font-weight: bold") # Style will be applied in _update_style_based_on_background
         
-        divide_setting , self.divide_label , self.divede_edit = self._create_labeled_input_field("网格等分数量:" , "帮助模型识别坐标,在截图上绘制网格")
-        self.main_layout.addWidget(divide_setting)
-
+        self.divide_setting , self.divide_label , self.divede_edit = self._create_labeled_input_field("网格等分数量:" , "帮助模型识别坐标,在截图上绘制网格")
+        self.main_layout.addWidget(self.divide_setting)
         self.line_width_setting , self.line_width_label , self.line_width_edit = self._create_labeled_input_field("网格线粗细:" , "1px差不多")
         self.main_layout.addWidget(self.line_width_setting)
         self.magnification_setting , self.magnification_label , self.magnification_edit =  self._create_labeled_input_field("截图缩小倍率:" , "将截图宽高分别除以x")  
         self.main_layout.addWidget(self.magnification_setting)
 
+
         self.dark_mode_setting_label = QLabel("深色模式设置" , self.scroll_content_widget)
         self.main_layout.addWidget(self.dark_mode_setting_label)
-        # self.dark_mode_setting_label.setStyleSheet("font-size: 16px; font-weight: bold") # Style will be applied in _update_style_based_on_background
-        self.dark_mode_setting = QComboBox()
+        self.dark_mode_setting = WheelEventComboBox()
         self.dark_mode_setting.addItems(["自动" , "始终深色" , "始终浅色"])
         self.main_layout.addWidget(self.dark_mode_setting)
+
+        self.chat_setting_label = QLabel("聊天模式设置" , self.scroll_content_widget)
+        self.main_layout.addWidget(self.chat_setting_label)
+        self.chat_url_setting , self.chat_url_label , self.chat_url_edit = self._create_labeled_input_field("Chat模式下baseurl:" , "留空与agent使用同一个模型")
+        self.main_layout.addWidget(self.chat_url_setting)
+        
+        self.chat_api_key, self.chat_key_label, self.chat_api_key_line_edit = self._create_labeled_input_field("Chat模式下api_key:", "留空与agent使用同一api_key")
+        self.main_layout.addWidget(self.chat_api_key) 
+
+        self.chat_model_name, self.chat_model_name_label, self.chat_model_name_line_edit = self._create_labeled_input_field("Chat模式下的模型名称:", "留空与agent使用同一模型")
+        self.main_layout.addWidget(self.chat_model_name) 
+
+        self.chat_agent_name_setting , self.chat_agent_label , self.chat_agent_edit = self._create_labeled_input_field("Agent昵称:" , "agent的昵称")
+        self.main_layout.addWidget(self.chat_agent_name_setting)
+
+        self.chat_user_name_setting , self.chat_user_label , self.chat_user_edit = self._create_labeled_input_field("用户昵称:" , "用户的昵称")
+        self.main_layout.addWidget(self.chat_user_name_setting)
+
+        self.chat_avatar_setting , self.chat_avatar_label = self._create_labeled_input_field("头像设置")
+        self.main_layout.addWidget(self.chat_avatar_setting)
+
+        self.avatar_layout = QHBoxLayout()
+
+        # 用户头像
+        self.user_avatar_container = QWidget()
+        self.user_avatar_hlayout = QHBoxLayout(self.user_avatar_container)
+        self.user_avatar_layout = QVBoxLayout()
+        self.user_avatar_label = QLabel()
+        user_avatar_path = os.path.join("gui", "img", "user_avatar.png")
+        from PyQt6.QtGui import QPixmap
+        self.user_avatar_label.setPixmap(QPixmap(user_avatar_path).scaled(50, 50, Qt.AspectRatioMode.KeepAspectRatio))
+        self.user_avatar_layout.addWidget(self.user_avatar_label)
+        self.user_avatar_name_label = QLabel("用户头像")
+        self.user_avatar_name_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.user_avatar_layout.addWidget(self.user_avatar_name_label)
+        self.user_avatar_hlayout.addLayout(self.user_avatar_layout)
+        self.user_avatar_button = QPushButton("选择文件")
+        self.user_avatar_hlayout.addWidget(self.user_avatar_button)
+        self.avatar_layout.addWidget(self.user_avatar_container)
+
+        # Agent头像
+        self.agent_avatar_container = QWidget()
+        self.agent_avatar_hlayout = QHBoxLayout(self.agent_avatar_container)
+        self.agent_avatar_layout = QVBoxLayout()
+        self.agent_avatar_label = QLabel()
+        agent_avatar_path = os.path.join("gui", "img", "agent_avatar.JPG")
+        self.agent_avatar_label.setPixmap(QPixmap(agent_avatar_path).scaled(50, 50, Qt.AspectRatioMode.KeepAspectRatio))
+        self.agent_avatar_layout.addWidget(self.agent_avatar_label)
+        self.agent_avatar_name_label = QLabel("Agent头像")
+        self.agent_avatar_name_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.agent_avatar_layout.addWidget(self.agent_avatar_name_label)
+        self.agent_avatar_hlayout.addLayout(self.agent_avatar_layout)
+        self.agent_avatar_button = QPushButton("选择文件")
+        self.agent_avatar_hlayout.addWidget(self.agent_avatar_button)
+        self.avatar_layout.addWidget(self.agent_avatar_container)
+
+        self.user_avatar_button.clicked.connect(self._on_user_avatar_button_clicked)
+        self.agent_avatar_button.clicked.connect(self._on_agent_avatar_button_clicked)
+
+        self.main_layout.addLayout(self.avatar_layout)
 
         self.scroll_area.setWidget(self.scroll_content_widget)
         self.overall_layout.addWidget(self.scroll_area) 
@@ -97,8 +159,7 @@ class NekoSettingsWindow(QWidget):
             except json.JSONDecodeError:
                 print(f"Warning: config.json is malformed. Starting with empty config.")
                 current_config = {}
-        
-        # Update specific sections of the config
+
         if 'ai_settings' not in current_config:
             current_config['ai_settings'] = {}
         current_config['ai_settings']['base_url'] = settings.get('base_url')
@@ -110,6 +171,14 @@ class NekoSettingsWindow(QWidget):
         current_config['neko_vision_settings']['line_width'] = settings.get('line_width')
         current_config['neko_vision_settings']['divide'] = settings.get('divide')
         current_config['neko_vision_settings']['magnification'] = settings.get('magnification')
+
+        if 'chat_settings' not in current_config:
+            current_config['chat_settings'] = {}
+        current_config['chat_settings']['chat_url'] = settings.get('chat_url')
+        current_config['chat_settings']['chat_api_key'] = settings.get('chat_api_key')
+        current_config['chat_settings']['chat_model_name'] = settings.get('chat_model_name')
+        current_config['chat_settings']['chat_agent_name'] = settings.get('chat_agent_name')
+        current_config['chat_settings']['chat_user_name'] = settings.get('chat_user_name')
 
         current_config['dark_mode'] = settings.get('darkmode')
 
@@ -142,6 +211,14 @@ class NekoSettingsWindow(QWidget):
                 if index != -1:
                     self.dark_mode_setting.setCurrentIndex(index)
 
+                # Load Chat settings
+                chat_settings = config.get('chat_settings', {})
+                self.chat_url_edit.setText(chat_settings.get('chat_url', ''))
+                self.chat_api_key_line_edit.setText(chat_settings.get('chat_api_key', ''))
+                self.chat_model_name_line_edit.setText(chat_settings.get('chat_model_name', ''))
+                self.chat_agent_edit.setText(chat_settings.get('chat_agent_name', ''))
+                self.chat_user_edit.setText(chat_settings.get('chat_user_name', ''))
+
             except json.JSONDecodeError:
                 print(f"Error: config.json is malformed. Could not load settings.")
             except Exception as e:
@@ -149,7 +226,7 @@ class NekoSettingsWindow(QWidget):
         else:
             print(f"config.json not found at {config_path}. Starting with default settings.")
         
-    def _create_labeled_input_field(self, label_text, placeholder_text):
+    def _create_labeled_input_field(self, label_text, placeholder_text=None):
         container_widget = QWidget()
         layout = QVBoxLayout(container_widget)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -159,12 +236,15 @@ class NekoSettingsWindow(QWidget):
         label.setStyleSheet("font-size: 14px; padding-bottom: 5px")
         layout.addWidget(label)
         
-        line_edit = QLineEdit(container_widget)
-        line_edit.setPlaceholderText(placeholder_text)
-        layout.addWidget(line_edit)
-        
-        container_widget.setStyleSheet("QWidget { border: none; }")
-        return container_widget, label, line_edit
+        if placeholder_text != None:
+            line_edit = QLineEdit(container_widget)
+            line_edit.setPlaceholderText(placeholder_text)
+            layout.addWidget(line_edit)
+            container_widget.setStyleSheet("QWidget { border: none; }")
+            return container_widget, label, line_edit
+        else :
+            container_widget.setStyleSheet("QWidget { border: none; }")
+            return container_widget, label
 
     def showEvent(self, event):
         if not self.initial_pos_set:
@@ -185,8 +265,8 @@ class NekoSettingsWindow(QWidget):
             self._update_style_based_on_background()
             self._load_settings_from_config() # Load settings before showing
             QApplication.processEvents()
-            self.animation.start()
-            self.initial_pos_set = True
+        self.animation.start()
+        self.initial_pos_set = True
 
         super().showEvent(event)
         
@@ -194,6 +274,7 @@ class NekoSettingsWindow(QWidget):
         screen = QApplication.primaryScreen()
         screen_rect = screen.geometry()
         x = screen_rect.width() // 2
+
         y = screen_rect.height() // 2
         
         dark_mode = dark_or_light(x, y)
@@ -344,6 +425,7 @@ class NekoSettingsWindow(QWidget):
         self.ai_setting_label.setStyleSheet(section_label_style)
         self.nv_setting_label.setStyleSheet(section_label_style)
         self.dark_mode_setting_label.setStyleSheet(section_label_style)
+        self.chat_setting_label.setStyleSheet(section_label_style)
         
         label_style = f"""
             QLabel {{
@@ -352,12 +434,18 @@ class NekoSettingsWindow(QWidget):
                 color: {theme_colors['text_color']};
             }}
         """
+        #设置项的label
         self.base_url_label.setStyleSheet(label_style)
         self.api_key_label.setStyleSheet(label_style)
         self.model_name_label.setStyleSheet(label_style)
         self.divide_label.setStyleSheet(label_style)
         self.line_width_label.setStyleSheet(label_style)
         self.magnification_label.setStyleSheet(label_style)
+        self.chat_url_label.setStyleSheet(label_style)
+        self.chat_key_label.setStyleSheet(label_style)
+        self.chat_model_name_label.setStyleSheet(label_style)
+        self.chat_agent_label.setStyleSheet(label_style)
+        self.chat_user_label.setStyleSheet(label_style)
         
         input_style = f"""
             QLineEdit {{
@@ -373,12 +461,18 @@ class NekoSettingsWindow(QWidget):
                 outline: {base_styles['line_edit_focus']['outline']};
             }}
         """
+        #设置项输入框的样式
         self.base_url_line_edit.setStyleSheet(input_style)
         self.api_key_line_edit.setStyleSheet(input_style)
         self.model_name_line_edit.setStyleSheet(input_style)
         self.divede_edit.setStyleSheet(input_style)
         self.line_width_edit.setStyleSheet(input_style)
         self.magnification_edit.setStyleSheet(input_style)
+        self.chat_url_edit.setStyleSheet(input_style)
+        self.chat_model_name_line_edit.setStyleSheet(input_style)
+        self.chat_api_key_line_edit.setStyleSheet(input_style)
+        self.chat_agent_edit.setStyleSheet(input_style)
+        self.chat_user_edit.setStyleSheet(input_style)
 
         combobox_style = f"""
             QComboBox {{
@@ -453,7 +547,12 @@ class NekoSettingsWindow(QWidget):
             "line_width": self.line_width_edit.text(),
             "divide": self.divede_edit.text(),
             "magnification": self.magnification_edit.text(),
-            "darkmode": self.dark_mode_setting.currentText()
+            "darkmode": self.dark_mode_setting.currentText(),
+            "chat_url": self.chat_url_edit.text(),
+            "chat_api_key": self.chat_api_key_line_edit.text(),
+            "chat_model_name": self.chat_model_name_line_edit.text(),
+            "chat_agent_name": self.chat_agent_edit.text(),
+            "chat_user_name": self.chat_user_edit.text()
         }
         self.save_settings_to_config(self._result)
         self._close_window()
@@ -475,6 +574,31 @@ class NekoSettingsWindow(QWidget):
         
     def _delayed_exit(self):
         QTimer.singleShot(450, lambda: sys.exit(0))
+
+    def _on_user_avatar_button_clicked(self):
+        self._open_file_dialog(self.user_avatar_label, "user_avatar.png")
+
+    def _on_agent_avatar_button_clicked(self):
+        self._open_file_dialog(self.agent_avatar_label, "agent_avatar.JPG")
+
+    def _open_file_dialog(self, avatar_label, default_file_name):
+        from PyQt6.QtWidgets import QFileDialog
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "选择头像",
+            "",
+            "Images (*.png *.jpg *.jpeg)"
+        )
+        if file_path:
+            from PyQt6.QtGui import QPixmap
+            avatar_label.setPixmap(QPixmap(file_path).scaled(50, 50, Qt.AspectRatioMode.KeepAspectRatio))
+            import shutil
+            destination_path = os.path.join("gui", "img", default_file_name)
+            try:
+                shutil.copy2(file_path, destination_path)
+                print(f"Avatar file copied to {destination_path}")
+            except Exception as e:
+                print(f"Error copying avatar file: {e}")
             
     def get_settings(self):
         self.show()

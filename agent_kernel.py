@@ -127,7 +127,7 @@ Task_Finished
 """}
 ]
 
-chat_history=[{"role" : "system"},{"content" : "you are a helpful assistant,你必须在每次回答完用户的问题前在第一行输出一个CHAT并换行再做出你的回答"}]
+chat_history=[{"role" : "system" , "content" : "you are a helpful assistant,你必须在每次回答完用户的问题前在第一行输出一个CHAT并换行再做出你的回答"}]
 
 def clear_ocr_cache():
     global actions_history
@@ -143,7 +143,14 @@ def clear_ocr_cache():
                 if "[OCR信息]:" in item["content"]:
                     parts = item["content"].split("[OCR信息]:", 1)
                     item["content"] = parts[0] + "[OCR信息]:"
-                        
+
+def extract_chat_content(input_string):
+    parts = input_string.split("CHAT", 1)
+    if len(parts) > 1:
+        return parts[1].strip()
+    else:
+        return ""
+    
 runtime = 0
 mode = None
 def get_actions(prompt):
@@ -260,8 +267,9 @@ def get_actions(prompt):
                 temperature=0.7,
                 messages=chat_history
             )
-        chat_reply = response.choices[0].message.content
-        actions_history.append({"role": "assistant", "content": chat_reply})
+        chat_reply = extract_chat_content(response.choices[0].message.content)
+        print(chat_reply)
+        chat_history.append({"role": "assistant" , "content": chat_reply})
         return chat_reply
     
     

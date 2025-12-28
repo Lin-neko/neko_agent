@@ -9,5 +9,12 @@
         "divide": "1123",
         "magnification": "112"
     },
-    "dark_mode": "始终深色"
+    "dark_mode": "自动",
+    "chat_settings": {
+        "chat_url": "123",
+        "chat_api_key": "sk123",
+        "chat_model_name": "gpt78",
+        "chat_agent_name": "nk",
+        "chat_user_name": "adm"
+    }
 }
