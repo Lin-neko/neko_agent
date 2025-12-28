@@ -3,15 +3,22 @@ from PyQt6.QtCore import Qt, QRect, pyqtSignal, QDateTime
 from PyQt6.QtGui import QIcon, QPixmap, QRegion, QTextBlockFormat, QTextCursor, QTextCharFormat, QFont,QTextImageFormat
 from dark_mode_manager import dark_or_light
 import os
+import ctypes
 import json
 
-
+with open("config.json", "r", encoding='utf-8') as f:
+            config = json.load(f)
 class TransparentWindow(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
+        
+        self.anti_grab = config["anti_grab"]
+        if self.anti_grab == True :
+            SetWindowDisplayAffinity = ctypes.windll.user32.SetWindowDisplayAffinity
+            SetWindowDisplayAffinity.restype = ctypes.c_bool
+            SetWindowDisplayAffinity(int(self.winId()) , 0x00000011)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool)
-        screen_geometry = QApplication.primaryScreen().geometry()
         self.setGeometry(QRect(100,100,100,100))
         self.setStyleSheet("background: transparent;")
 
@@ -20,10 +27,14 @@ class NekoChatWindow(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        with open("config.json", "r", encoding='utf-8') as f:
-            config = json.load(f)
         self.user_name = config["chat_settings"]["chat_user_name"]
         self.agent_name = config["chat_settings"]["chat_agent_name"]
+        self.anti_grab = config["anti_grab"]
+
+        if self.anti_grab == True :
+            SetWindowDisplayAffinity = ctypes.windll.user32.SetWindowDisplayAffinity
+            SetWindowDisplayAffinity.restype = ctypes.c_bool
+            SetWindowDisplayAffinity(int(self.winId()) , 0x00000011)
 
         screen_geometry = QApplication.primaryScreen().geometry()
         self.original_geometry = QRect(

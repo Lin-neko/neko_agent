@@ -19,5 +19,5 @@
         "chat_image": false,
         "chat_prompt": "you are a helpful assistant"
     },
-    "anti_grab": false
+    "anti_grab": true
 }
