@@ -42,11 +42,6 @@ class InputBox(QWidget):
         self.input_field.returnPressed.connect(self.on_return_pressed)
 
         self.cancel_button = QPushButton(self)
-        send_icon_path = "gui/img/close_light.png"
-        send_pixmap = QPixmap(send_icon_path)
-        send_icon = QIcon(send_pixmap)
-        self.cancel_button.setIcon(send_icon)
-        self.cancel_button.setIconSize(self.cancel_button.size())
 
         self.cancel_button.setStyleSheet("""
             QPushButton {
@@ -126,11 +121,15 @@ class InputBox(QWidget):
             bg_color_input = "rgba(255, 255, 255, 240)"
             bg_color_button = "rgba(255, 255, 255, 240)"
             hover_color_button = "rgba(255, 255, 255, 255)"
+            self.cancel_button.setIcon(QIcon(QPixmap("gui/img/close_light.png")))
+            self.cancel_button.setIconSize(self.cancel_button.size())
         else:
             text_color = "white"
             bg_color_input = "rgba(0, 0, 0, 180)"
             bg_color_button = "rgba(0, 0, 0, 180)"
             hover_color_button = "rgba(0, 0, 0, 220)"
+            self.cancel_button.setIcon(QIcon(QPixmap("gui/img/close_dark.png")))
+            self.cancel_button.setIconSize(self.cancel_button.size())
 
             self.input_field.setStyleSheet(f"""
                 QLineEdit {{

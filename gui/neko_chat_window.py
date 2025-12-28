@@ -1,14 +1,10 @@
-from PyQt6.QtWidgets import (QWidget, QApplication, QPushButton, QTextEdit, 
-                             QVBoxLayout, QHBoxLayout, QLabel, QScrollArea)
-from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve, QRect, pyqtSignal, QDateTime
-from PyQt6.QtGui import (QIcon, QPixmap, QRegion, QTextBlockFormat, QTextCursor, 
-                         QColor, QTextCharFormat, QFont, QTextLength,QTextImageFormat)
-import sys
+from PyQt6.QtWidgets import QWidget, QApplication, QPushButton, QTextEdit, QVBoxLayout
+from PyQt6.QtCore import Qt, QRect, pyqtSignal, QDateTime
+from PyQt6.QtGui import QIcon, QPixmap, QRegion, QTextBlockFormat, QTextCursor, QTextCharFormat, QFont,QTextImageFormat
 from dark_mode_manager import dark_or_light
 import os
-from PyQt6.QtWidgets import QWidget
-from PyQt6.QtCore import Qt, QRect
-from PyQt6.QtGui import QColor
+import json
+
 
 class TransparentWindow(QWidget):
     def __init__(self, parent=None):
@@ -24,6 +20,10 @@ class NekoChatWindow(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        with open("config.json", "r", encoding='utf-8') as f:
+            config = json.load(f)
+        self.user_name = config["chat_settings"]["chat_user_name"]
+        self.agent_name = config["chat_settings"]["chat_agent_name"]
 
         screen_geometry = QApplication.primaryScreen().geometry()
         self.original_geometry = QRect(
@@ -140,7 +140,7 @@ class NekoChatWindow(QWidget):
                 cursor.insertText("\n")  # 为多行消息添加换行
         
         # 添加时间戳
-        cursor.insertText(f"[{timestamp}]:You ")
+        cursor.insertText(f"[{timestamp}]:{self.user_name} ")
         
         # 插入头像
         if os.path.exists(avatar_path):
@@ -184,7 +184,7 @@ class NekoChatWindow(QWidget):
             cursor.insertImage(avatar_format)
         
         # 插入带有时间戳的前缀
-        cursor.insertText(f" Agent [{timestamp}]: ")
+        cursor.insertText(f" {self.agent_name} [{timestamp}]: ")
         
         # 使用 insertMarkdown 渲染 Markdown 格式
         cursor.insertMarkdown(message)

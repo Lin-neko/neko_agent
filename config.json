@@ -14,8 +14,8 @@
         "chat_url": "https://api.deepseek.com",
         "chat_api_key": "sk-1c1179cffcbf4d47aa81f6dea120f9bb",
         "chat_model_name": "deepseek-chat",
-        "chat_agent_name": "nk",
-        "chat_user_name": "adm",
+        "chat_agent_name": "Agent",
+        "chat_user_name": "You",
         "chat_image": false,
         "chat_prompt": "you are a helpful assistant"
     },
