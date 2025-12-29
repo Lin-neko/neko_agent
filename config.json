@@ -1,8 +1,8 @@
 {
     "ai_settings": {
-        "base_url": "https://yunwu.ai/v1",
-        "api_key": "sk-6rObOgzo2imCtLQ8vc86QSVyg5xdZaMV3ynSrlsmoMZFgvlc",
-        "model_name": "gemini-2.0-flash"
+        "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+        "api_key": "sk-158c5624bdbc4219a031eb8af22722e0",
+        "model_name": "qwen-vl-max-2025-08-13"
     },
     "neko_vision_settings": {
         "line_width": "1",
