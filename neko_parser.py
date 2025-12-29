@@ -1,10 +1,7 @@
 import re
 from neko_control import Controller
-from PIL import Image
 class AgentParser:
-
     def __init__(self):
-        
         self.controller = Controller()
         self.patterns = {
             'msg': re.compile(r'^Msg\s*-\s*(.+)$', re.MULTILINE),
@@ -22,10 +19,6 @@ class AgentParser:
 
     def parse_and_execute(self, llm_output):
         remaining_output = llm_output.strip()
-        screen = self.app.primaryScreen()
-        pixmap = screen.grabWindow() 
-        pil_img = Image.fromqimage(pixmap.toImage())
-        original_width, original_height = pil_img.size
 
         if "[pro]" in remaining_output or "[basic]" in remaining_output or "[chat]" in remaining_output:
             return "WAIT_FOR_NEXT_STEP"
@@ -44,12 +37,12 @@ class AgentParser:
                         print(content)
                     elif action_type == 'click':
                         x, y = int(match.group(1)), int(match.group(2))
-                        self.controller.click(x*original_width, y*original_height)
+                        self.controller.click(x, y)
                     elif action_type == 'input':
                         text = match.group(1)
                         x = int(match.group(2))
                         y = int(match.group(3))
-                        self.controller.type_string(text, x * original_width, y * original_height)
+                        self.controller.type_string(text, x, y)
                     elif action_type == 'exec':
                         command = match.group(1)
                         self.controller.exec(command)
