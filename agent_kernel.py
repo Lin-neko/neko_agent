@@ -79,9 +79,9 @@ actions_history = [
 适用场景：需要获取屏幕截图/图形界面、鼠标点击、键盘输入。
 
 - 环境依赖：
-    - 你必须严格依赖用户提供的带网格的屏幕截图。
-    - 网格规格：格线粗度 {grid.line_width}px，横向间隔 {grid.y_interval * grid.magnification}px，纵向间隔 {grid.x_interval * grid.magnification}px。
-    - 你必须结合 OCR 识别结果 和 屏幕信息 来分析控件坐标。
+    - 你必须严格依赖用户提供的带屏幕截图。
+    - 坐标归一：将屏幕宽高全部视为1，你的输出坐标全部都应是0到1之间的比例坐标
+    - 你必须结合 OCR 识别结果 来分析控件坐标。
 
 - 可用工具：
     - click x,y：模拟鼠标左键单击。
@@ -128,7 +128,7 @@ Act_Finished
 (用户上传新截图)
 
 Msg - 喵！找到了第一条新闻链接，Neko要点进去看看了
-click 319,548
+click 0.03,0.13
 Msg - 点击成功！Neko看看进去了没有呀
 Act_Finished
 
@@ -209,7 +209,7 @@ def get_actions(prompt):
         actions_history.append({
             "role": "user",
             "content": [
-                {"type": "text", "text": prompt + f"\n当前屏幕信息:{info_dict}\n命令执行历史:{cmd_history}\n文件读取结果:{file}\n当前工作目录:{pwd},目录下的文件:{files_under_current_dir},系统用户名{user_name}" + "OCR信息格式:[{'内容1': (x坐标, y坐标)},{'内容2': (x坐标, y坐标)}]\n" + f"[OCR信息]:{OCR_info}"},
+                {"type": "text", "text": prompt + f"命令执行历史:{cmd_history}\n文件读取结果:{file}\n当前工作目录:{pwd},目录下的文件:{files_under_current_dir},系统用户名{user_name}" + "OCR信息格式:[{'内容1': (x坐标, y坐标)},{'内容2': (x坐标, y坐标)}]\n" + f"[OCR信息]:{OCR_info}"},
                 {
                     "type": "image_url",
                     "image_url": {
@@ -309,6 +309,7 @@ def get_actions(prompt):
         )
         agent_reply = response.choices[0].message.content
         actions_history.append({"role": "assistant", "content": agent_reply})
+        print(actions_history)
         if "[pro]" in agent_reply :
             mode = "[pro]"
             print('这是一个图形化任务')
