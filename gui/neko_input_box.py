@@ -1,12 +1,8 @@
 import sys
 from PyQt6.QtWidgets import QApplication, QWidget, QLineEdit, QHBoxLayout, QPushButton, QGraphicsOpacityEffect
 from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve, QRect, QTimer, QEventLoop
-from PyQt6.QtGui import QIcon, QPixmap
-import ctypes
-import json
+from PyQt6.QtGui import QIcon, QPixmap, QColor, QScreen
 from dark_mode_manager import dark_or_light
-with open("config.json", "r", encoding='utf-8') as f:
-    config = json.load(f)
 
 class InputBox(QWidget):
     mode = 'normal'
@@ -22,12 +18,6 @@ class InputBox(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        
-        self.anti_grab = config["anti_grab"]
-        if self.anti_grab == True :
-            SetWindowDisplayAffinity = ctypes.windll.user32.SetWindowDisplayAffinity
-            SetWindowDisplayAffinity.restype = ctypes.c_bool
-            SetWindowDisplayAffinity(int(self.winId()) , 0x00000011)
         self.mode = 'normal'
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
