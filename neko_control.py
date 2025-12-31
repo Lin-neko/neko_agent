@@ -6,6 +6,10 @@ import win32gui
 import time
 import subprocess
 import ctypes
+import sys
+from PyQt6.QtWidgets import QApplication
+
+_APP = None
 
 def get_display_scale_factor():
     user32 = ctypes.windll.user32
@@ -13,16 +17,34 @@ def get_display_scale_factor():
     dpi = user32.GetDpiForWindow(desktop_window)
     scale_factor = dpi / 96.0
     return scale_factor
+def Convert_pos(x, y):
+    global _APP
+    # QApplication 必须是单例；重复创建可能导致进程直接异常退出（尤其在 PyQt6 + 多线程/多次调用时）
+    if QApplication.instance() is None:
+        _APP = QApplication(sys.argv)
+    else:
+        _APP = QApplication.instance()
+
+    screen = _APP.primaryScreen()
+    if screen is None:
+        raise RuntimeError("primaryScreen() is None")
+
+    screen_geometry = screen.geometry()
+    screen_width = screen_geometry.width()
+    screen_height = screen_geometry.height()
+    scale = get_display_scale_factor()
+    return round(screen_width * x * scale, 2), round(screen_height * y * scale, 2)
 class Controller:
-    def click(self, x, y):
-        hwnd = win32gui.WindowFromPoint((x, y))
+    def click(self, x, y,times):
+        x , y = Convert_pos(x , y)
+        hwnd = win32gui.WindowFromPoint((int(x), int(y)))
         if not hwnd:
             print(f"猫猫未找到坐标 ({x}, {y}) 下的窗口句柄喵...")
             return 1
 
         rect = win32gui.GetWindowRect(hwnd)
-        win_x = x - rect[0]
-        win_y = y - rect[1]
+        win_x = int(x - rect[0])
+        win_y = int(y - rect[1])
         print(f"猫猫向窗口句柄 {hex(hwnd)} 发送点击消息 (相对坐标: {win_x}, {win_y})")
         
         try:
@@ -52,9 +74,10 @@ class Controller:
         long_position = win32api.MAKELONG(win_x, win_y)
         time.sleep(0.3) #确保动画与点击操作同步
         try:
-            win32gui.PostMessage(hwnd, win32con.WM_LBUTTONDOWN, win32con.MK_LBUTTON, long_position)
-            time.sleep(0.05)
-            win32gui.PostMessage(hwnd, win32con.WM_LBUTTONUP, 0, long_position)
+            for i in range(times):
+                win32gui.PostMessage(hwnd, win32con.WM_LBUTTONDOWN, win32con.MK_LBUTTON, long_position)
+                time.sleep(0.05)
+                win32gui.PostMessage(hwnd, win32con.WM_LBUTTONUP, 0, long_position)
             return 0
         except Exception as e:
             print(f"发送消息点击失败惹: {e}")
@@ -62,7 +85,8 @@ class Controller:
     
     
     def type_string(self, text,x,y):
-        hwnd = win32gui.WindowFromPoint((x, y))
+        x , y = Convert_pos(x , y)
+        hwnd = win32gui.WindowFromPoint((int(x), int(y)))
         if not hwnd:
             print(f"猫猫未找到坐标 ({x}, {y}) 下的窗口句柄喵...")
             return
@@ -79,7 +103,9 @@ class Controller:
     
     
     def drag(self, current_x, current_y, new_x, new_y):
-        hwnd = win32gui.WindowFromPoint((current_x, current_y))
+        current_x , current_y = Convert_pos(current_x , current_y)
+        new_x , new_y = Convert_pos(new_x , new_y)
+        hwnd = win32gui.WindowFromPoint((int(current_x), int(current_y)))
         if not hwnd:
             print(f"未找到坐标 ({current_x}, {current_y}) 下的窗口句柄喵...")
             return 1
@@ -125,7 +151,7 @@ class Controller:
         time.sleep(0.3) #确保动画与操作同步
 
         try:
-            start_position = win32api.MAKELONG(start_win_x, start_win_y)
+            start_position = win32api.MAKELONG(int(start_win_x), int(start_win_y))
             win32gui.PostMessage(hwnd, win32con.WM_LBUTTONDOWN, win32con.MK_LBUTTON, start_position)
             time.sleep(0.1)
             
@@ -133,11 +159,11 @@ class Controller:
             for i in range(steps + 1):
                 intermediate_x = start_win_x + (end_win_x - start_win_x) * i // steps
                 intermediate_y = start_win_y + (end_win_y - start_win_y) * i // steps
-                intermediate_position = win32api.MAKELONG(intermediate_x, intermediate_y)
+                intermediate_position = win32api.MAKELONG(int(intermediate_x), int(intermediate_y))
                 win32gui.PostMessage(hwnd, win32con.WM_MOUSEMOVE, win32con.MK_LBUTTON, intermediate_position)
                 time.sleep(0.01)
 
-            end_position = win32api.MAKELONG(end_win_x, end_win_y)
+            end_position = win32api.MAKELONG(int(end_win_x), int(end_win_y))
             win32gui.PostMessage(hwnd, win32con.WM_LBUTTONUP, 0, end_position)
             
             return 0
@@ -148,12 +174,14 @@ class Controller:
         
 
     def scroll(self ,scroll_amount, x, y):
-        hwnd = win32gui.WindowFromPoint((x, y))
+        x , y = Convert_pos(x,y)
+        null , scroll_amount = Convert_pos(x , scroll_amount)
+        hwnd = win32gui.WindowFromPoint((int(x), int(y)))
         if hwnd == 0:
             print(f"未找到{x},{y}下的的窗口。")
             return 1
-        lParam = win32api.MAKELONG(x, y)
-        wParam = win32api.MAKELONG(0, scroll_amount)
+        lParam = win32api.MAKELONG(int(x), int(y))
+        wParam = win32api.MAKELONG(0, int(scroll_amount))
         
         try:
             script_path = os.path.join(os.path.dirname(__file__), "gui","neko_move_indicator.py")

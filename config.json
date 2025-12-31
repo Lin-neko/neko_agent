@@ -12,7 +12,7 @@
     "dark_mode": "自动",
     "chat_settings": {
         "chat_url": "https://api.deepseek.com",
-        "chat_api_key": "sk-1c1179cffcbf4d47aa81f6dea120f9bb",
+        "chat_api_key": "sk-069cba0980cd448cbd8077b82ad21ef0",
         "chat_model_name": "deepseek-chat",
         "chat_agent_name": "Agent",
         "chat_user_name": "You",
