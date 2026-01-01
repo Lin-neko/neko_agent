@@ -52,10 +52,10 @@ class NekoSettingsWindow(QWidget):
         self.nv_setting_label = QLabel('Neko Vision设置', self.scroll_content_widget)
         self.main_layout.addWidget(self.nv_setting_label)
         
-        self.divide_setting , self.divide_label , self.divede_edit = self._create_labeled_input_field("网格等分数量:" , "帮助模型识别坐标,在截图上绘制网格")
-        self.main_layout.addWidget(self.divide_setting)
-        self.line_width_setting , self.line_width_label , self.line_width_edit = self._create_labeled_input_field("网格线粗细:" , "1px差不多")
-        self.main_layout.addWidget(self.line_width_setting)
+        # self.divide_setting , self.divide_label , self.divede_edit = self._create_labeled_input_field("网格等分数量:" , "帮助模型识别坐标,在截图上绘制网格")
+        # self.main_layout.addWidget(self.divide_setting)
+        # self.line_width_setting , self.line_width_label , self.line_width_edit = self._create_labeled_input_field("网格线粗细:" , "1px差不多")
+        # self.main_layout.addWidget(self.line_width_setting)
         self.magnification_setting , self.magnification_label , self.magnification_edit =  self._create_labeled_input_field("截图缩小倍率:" , "将截图宽高分别除以x")  
         self.main_layout.addWidget(self.magnification_setting)
 
@@ -196,8 +196,8 @@ class NekoSettingsWindow(QWidget):
 
         if 'neko_vision_settings' not in current_config:
             current_config['neko_vision_settings'] = {}
-        current_config['neko_vision_settings']['line_width'] = settings.get('line_width')
-        current_config['neko_vision_settings']['divide'] = settings.get('divide')
+        # current_config['neko_vision_settings']['line_width'] = settings.get('line_width')
+        # current_config['neko_vision_settings']['divide'] = settings.get('divide')
         current_config['neko_vision_settings']['magnification'] = settings.get('magnification')
 
         if 'chat_settings' not in current_config:
@@ -233,8 +233,8 @@ class NekoSettingsWindow(QWidget):
 
                 # Load Neko Vision settings
                 neko_vision_settings = config.get('neko_vision_settings', {})
-                self.divede_edit.setText(neko_vision_settings.get('divide', ''))
-                self.line_width_edit.setText(neko_vision_settings.get('line_width', ''))
+                # self.divede_edit.setText(neko_vision_settings.get('divide', ''))
+                # self.line_width_edit.setText(neko_vision_settings.get('line_width', ''))
                 self.magnification_edit.setText(neko_vision_settings.get('magnification', ''))
 
                 # Load Dark Mode setting
@@ -475,8 +475,8 @@ class NekoSettingsWindow(QWidget):
         self.api_key_label.setStyleSheet(label_style)
         self.model_name_label.setStyleSheet(label_style)
 
-        self.divide_label.setStyleSheet(label_style)
-        self.line_width_label.setStyleSheet(label_style)
+        # self.divide_label.setStyleSheet(label_style)
+        # self.line_width_label.setStyleSheet(label_style)
         self.magnification_label.setStyleSheet(label_style)
         
         self.chat_url_label.setStyleSheet(label_style)
@@ -510,8 +510,8 @@ class NekoSettingsWindow(QWidget):
         self.api_key_line_edit.setStyleSheet(input_style)
         self.model_name_line_edit.setStyleSheet(input_style)
         
-        self.divede_edit.setStyleSheet(input_style)
-        self.line_width_edit.setStyleSheet(input_style)
+        # self.divede_edit.setStyleSheet(input_style)
+        # self.line_width_edit.setStyleSheet(input_style)
         self.magnification_edit.setStyleSheet(input_style)
         
         self.chat_url_edit.setStyleSheet(input_style)
@@ -617,8 +617,8 @@ class NekoSettingsWindow(QWidget):
             "base_url": self.base_url_line_edit.text(),
             "api_key": self.api_key_line_edit.text(),
             "model_name": self.model_name_line_edit.text(),
-            "line_width": self.line_width_edit.text(),
-            "divide": self.divede_edit.text(),
+            # "line_width": self.line_width_edit.text(),
+            # "divide": self.divede_edit.text(),
             "magnification": self.magnification_edit.text(),
             "darkmode": self.dark_mode_setting.currentText(),
             "chat_url": self.chat_url_edit.text(),

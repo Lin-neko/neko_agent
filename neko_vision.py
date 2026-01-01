@@ -15,9 +15,9 @@ class ScreenCapture:
             self.app = QApplication(sys.argv)
         else:
             self.app = QApplication.instance()
-        self.line_color = "red" #网格线颜色
-        self.line_width = int(config["neko_vision_settings"]["line_width"]) #网格线粗度
-        self.divide = int(config["neko_vision_settings"]["divide"]) #x等分 划分越多 Agent可能越容易判断坐标 但是过多的划分反而容易出现误判
+        # self.line_color = "red" #网格线颜色
+        #  self.line_width = int(config["neko_vision_settings"]["line_width"]) #网格线粗度
+        # self.divide = int(config["neko_vision_settings"]["divide"]) #x等分 划分越多 Agent可能越容易判断坐标 但是过多的划分反而容易出现误判
         self.magnification = int(config["neko_vision_settings"]["magnification"]) #缩小倍率 高分屏可以填大一点 节省 token
     def grab_screen_base64(self,debug=0,log=True):
         screen = self.app.primaryScreen()

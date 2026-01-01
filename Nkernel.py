@@ -273,10 +273,9 @@ Act_Finished
                     temperature=0.7,
                     messages=self.chat_history
                 )
-            chat_reply = response.choices[0].message.content
-            print(chat_reply)
-            self.chat_history.append({"role": "assistant", "content": chat_reply})
-            result = "CHAT\n" + chat_reply
+            self.chat_reply = response.choices[0].message.content
+            self.chat_history.append({"role": "assistant", "content": self.chat_reply})
+            result = "CHAT\n" + self.chat_reply
             return result
 
         else:
@@ -321,7 +320,7 @@ Act_Finished
             parser = AgentParser()
             self.feedback = parser.parse_and_execute(output)
             if "CHAT" in str(self.feedback):
-                print(output)
+                print(self.chat_reply)
             if "Pause" in str(self.feedback):
                 input("暂停")
             if self.feedback == "WAIT_FOR_NEXT_STEP":
@@ -331,15 +330,3 @@ Act_Finished
             if "ERROR_COMMAND" in str(self.feedback):
                 self.actions_history.append({"role": "user", "content": [{"type": "text", "text": f"你输出的命令有错误{self.feedback},请严格按照规则重新输出"}]})
                 print("err")
-
-
-# a = NekoAgentKernel()
-# a.main_loop(str(input("给neko下达命令:")))
-# exit = None
-# while exit != "y" :
-#     exit = str(input("exit? (y/n)"))
-#     if exit != "n" :
-#         print(f'任务完成,共计{a.runtime + 1}步')
-#     else :
-#         a.feedback = ""
-#         a.main_loop(str(input("追加命令:")))
