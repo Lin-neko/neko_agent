@@ -54,11 +54,6 @@ class AgentParser:
             "pause": self._do_pause,
         }
 
-    @staticmethod
-    def _unescape_dq(s: str) -> str:
-        # 将 \" \\ \n \t 等转为实际字符（LLM 输出里常见）
-        return bytes(s, "utf-8").decode("unicode_escape")
-
     def _try_parse_line(self, line: str) -> Tuple[Optional[str], bool]:
         for ap in self._patterns:
             m = ap.regex.match(line)
@@ -138,30 +133,30 @@ class AgentParser:
         return None
 
     def _do_input(self, m: re.Match) -> Optional[str]:
-        text = self._unescape_dq(m.group(1))
+        text = str(m.group(1))
         x = float(m.group(2))
         y = float(m.group(3))
         self.controller.type_string(text, x, y)
         return None
 
     def _do_exec(self, m: re.Match) -> Optional[str]:
-        command = self._unescape_dq(m.group(1))
+        command = str(m.group(1))
         self.controller.exec(command)
         return None
 
     def _do_popen(self, m: re.Match) -> Optional[str]:
-        command = self._unescape_dq(m.group(1))
+        command = str(m.group(1))
         self.controller.popen(command)
         return None
 
     def _do_file_read(self, m: re.Match) -> Optional[str]:
-        file_path = self._unescape_dq(m.group(1))
+        file_path = str(m.group(1))
         self.controller.file_read(file_path)
         return None
 
     def _do_file_write(self, m: re.Match) -> Optional[str]:
-        file_path = self._unescape_dq(m.group(1))
-        content = self._unescape_dq(m.group(2))
+        file_path = str(m.group(1))
+        content = str(m.group(2))
         self.controller.file_write(file_path, content)
         return None
 
