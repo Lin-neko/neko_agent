@@ -76,7 +76,7 @@ Act_Finished
 - `所有坐标必须归一化`：格式 `x y`（0.00~1.00，两位小数）
 
 ### 隐私红线
-- 涉及密码/支付 → 立即`Pause` + `Msg - 涉及隐私喵！请主人手动操作这里~`
+- 涉及密码/支付 → 立即`Pause`并给用户提示
 
 ## 【工具库】
 ### [basic] 模式
@@ -320,25 +320,36 @@ def get_actions(prompt):
         return f"主程序出错惹: {str(e)}"
 
 feedback = ""
-task = str(input("想让猫猫帮你做什么:"))
-while feedback != "TASK_COMPLETED":
-    runtime += 1
-    output = get_actions(task)
-    if "主程序出错惹:" in output:
-        print(output)
-        break
-    parser = AgentParser()
-    feedback = parser.parse_and_execute(output)
-    if "CHAT" in str(feedback):
-        print(output)
-    if "Pause" in str(feedback):
-        input("暂停")
-    if feedback == "WAIT_FOR_NEXT_STEP":
-        print("当前最小任务完成")
-        sleep(2)
-        continue
-    if "ERROR_COMMAND" in str(feedback):
-        actions_history.append({"role": "user", "content": [{"type": "text", "text": f"你输出的命令有错误{feedback}"}]})
-        print("err")
+def main_loop(task):
+    global feedback
+    global runtime
+    while feedback != "TASK_COMPLETED":
+        runtime += 1
+        output = get_actions(task)
+        if "主程序出错惹:" in output:
+            print(output)
+            break
+        parser = AgentParser()
+        feedback = parser.parse_and_execute(output)
+        if "CHAT" in str(feedback):
+            print(output)
+        if "Pause" in str(feedback):
+            input("暂停")
+        if feedback == "WAIT_FOR_NEXT_STEP":
+            print("当前最小任务完成")
+            sleep(2)
+            continue
+        if "ERROR_COMMAND" in str(feedback):
+            actions_history.append({"role": "user", "content": [{"type": "text", "text": f"你输出的命令有错误{feedback}"}]})
+            print("err")
+    
 
-print(f'任务完成,共计{runtime + 1}步')
+main_loop(str(input("给neko下达命令:")))
+exit = None
+while exit != "y" :
+    exit = str(input("exit? (y/n)"))
+    if exit != "n" :
+        print(f'任务完成,共计{runtime + 1}步')
+    else :
+        feedback = ""
+        main_loop(str(input("追加命令:")))

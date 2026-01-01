@@ -1,8 +1,8 @@
 {
     "ai_settings": {
-        "base_url": "https://yunwu.ai/v1",
-        "api_key": "sk-6rObOgzo2imCtLQ8vc86QSVyg5xdZaMV3ynSrlsmoMZFgvlc",
-        "model_name": "gemini-2.0-flash"
+        "base_url": "https://open.bigmodel.cn/api/paas/v4/",
+        "api_key": "70793b5185ea42638b2a9cc5a797d009.zMCe9BzzjWWj1oNS",
+        "model_name": "glm-4.7"
     },
     "neko_vision_settings": {
         "line_width": "1",
