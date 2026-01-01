@@ -8,6 +8,7 @@ import subprocess
 import ctypes
 import sys
 from PyQt6.QtWidgets import QApplication
+from gui.neko_pms_ctl import NekoPMS
 
 _APP = None
 
@@ -19,7 +20,6 @@ def get_display_scale_factor():
     return scale_factor
 def Convert_pos(x, y):
     global _APP
-    # QApplication 必须是单例；重复创建可能导致进程直接异常退出（尤其在 PyQt6 + 多线程/多次调用时）
     if QApplication.instance() is None:
         _APP = QApplication(sys.argv)
     else:
@@ -35,6 +35,9 @@ def Convert_pos(x, y):
     scale = get_display_scale_factor()
     return round(screen_width * x * scale, 2), round(screen_height * y * scale, 2)
 class Controller:
+    def __init__(self):
+        self.pms_app = QApplication(sys.argv)
+        self.pms = NekoPMS()
     def click(self, x, y,times):
         x , y = Convert_pos(x , y)
         hwnd = win32gui.WindowFromPoint((int(x), int(y)))
@@ -217,8 +220,8 @@ class Controller:
         print(f"已向窗口 '{hwnd}' 发送鼠标滚轮滚动消息 (滚动量: {scroll_amount})。")
     def exec(self,cmd):
         cmd_history = []
-        exec_or_not = str(input(f"猫猫尝试运行命令{cmd},是否允许(y/n):"))
-        if exec_or_not == "y":
+        exec_or_not = self.pms.cmd_exec_check(cmd)
+        if exec_or_not == "approved":
             result = subprocess.run(
                 cmd,
                 shell=True,
@@ -234,8 +237,8 @@ class Controller:
             f.close()
         return 0
     def popen(self,cmd):
-        exec_or_not = str(input(f"猫猫尝试在后台运行命令{cmd},是否允许(y/n):"))
-        if exec_or_not == "y":
+        exec_or_not = self.pms.popen_check(cmd)
+        if exec_or_not == "approved":
             subprocess.Popen(cmd,shell=True)
             return 0
         else :
@@ -247,8 +250,8 @@ class Controller:
                 return 1
 
     def file_write(self, file_path, content):
-        write_or_not = str(input(f"猫猫尝试写入文件{file_path}是否允许(y/n):"))
-        if write_or_not == 'y' :
+        write_or_not = self.pms.file_write_check(file_path)
+        if write_or_not == 'approved' :
             try:
                 with open(file_path, 'w', encoding='utf-8') as f:
                     processed_content = content.replace('\\n', '\n')
@@ -262,8 +265,8 @@ class Controller:
             return 1
 
     def file_read(self, file_path):
-        read_or_not = str(input(f"猫猫尝试读取文件{file_path},是否允许(y/n)"))
-        if read_or_not == "y" : 
+        read_or_not = self.pms.file_read_check(file_path)
+        if read_or_not == "approved" : 
             try :
                 with open(file_path, 'r', encoding='utf-8') as f:
                     content = f.read()

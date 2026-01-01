@@ -2,7 +2,7 @@ from PyQt6.QtWidgets import QTextEdit, QApplication , QPushButton, QLabel
 from PyQt6.QtCore import Qt, QRect, QEventLoop, QPropertyAnimation
 from PyQt6.QtGui import QPixmap, QRegion
 import sys
-from dark_mode_manager import dark_or_light
+from gui.dark_mode_manager import dark_or_light
 
 class NekoPMS(QTextEdit):
     def __init__(self, parent=None):
