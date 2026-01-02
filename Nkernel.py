@@ -13,7 +13,11 @@ class NekoAgentKernel:
         self.runtime = 0
         self.feedback = ""
         self.mode = None
-
+        self.kernel_socket = socket.socket()
+        try:
+            self.kernel_socket.connect((self.host, self.port))
+        except ConnectionRefusedError:
+            print("内核无法与主程序通信")
         with open("config.json", "r", encoding='utf-8') as f:
             self.config = json.load(f)
         self.ai_base_url = self.config["ai_settings"]["base_url"]
@@ -132,7 +136,8 @@ Act_Finished
 
         cache_files = [
             '.\\cache\\cmd_history.txt',
-            '.\\cache\\file_read.txt'
+            '.\\cache\\file_read.txt',
+            '.\\cache\\log.txt'
         ]
         for file_path in cache_files:
             try:
@@ -141,6 +146,12 @@ Act_Finished
             except FileNotFoundError:
                 pass
 
+    def clear_log(self):
+        with open('.\\cache\\log.txt', 'w', encoding='utf-8') as f:
+            pass
+    def add_log(self,log_string):
+        with open("cache/log.txt", "a") as f:
+            f.write(log_string)
     def clear_ocr_cache(self):
         for item in self.actions_history:
             if "content" in item:

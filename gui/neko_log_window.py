@@ -2,9 +2,15 @@ from PyQt6.QtWidgets import QTextEdit, QApplication, QPushButton
 from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve, QRect
 from PyQt6.QtGui import QIcon, QPixmap
 import sys
+import os
+from PyQt6.QtCore import QTimer
 
 class NekoLogWindow(QTextEdit):
     def __init__(self, parent=None):
+        app = QApplication.instance()
+        if app is None:
+            app = QApplication(sys.argv)
+
         super().__init__(parent)
         self.original_geometry = QRect(int(QApplication.primaryScreen().geometry().width() * 0.9 - QApplication.primaryScreen().geometry().width() * 0.15 // 2),
                                        int(QApplication.primaryScreen().geometry().height() * 0.15),
@@ -45,10 +51,16 @@ class NekoLogWindow(QTextEdit):
 
         self.is_collapsed = False
 
-        self.log_history = [] 
+        self.log_history = []
+        self.last_read_position = 0
+
+        self.log_file_path = "cache/log.txt"
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.read_and_display_log)
+        self.timer.start(1000)  # Check every 1000 ms
 
         self.collapse_button = QPushButton("", self)
-        self.collapse_button.setObjectName("collapseButton") 
+        self.collapse_button.setObjectName("collapseButton")
         self.original_button_geometry = QRect(int(self.width() * 0.8), int(self.height() *0.05 ), 20, 20)
         self.collapse_button.setGeometry(self.original_button_geometry)
         self.collapse_button.setStyleSheet("""
@@ -64,12 +76,29 @@ class NekoLogWindow(QTextEdit):
         self.collapse_button.setIcon(QIcon(QPixmap("gui/img/log_expand.PNG")))
         self.collapse_button.setIconSize(self.collapse_button.size())
         self.collapse_button.clicked.connect(self.toggle_collapse)
+        self.show()
+        app.exec()
 
-    def append_log(self, message):
-        self.log_history.append(message) 
-        if not self.is_collapsed: 
-            self.append(message)
-            self.verticalScrollBar().setValue(self.verticalScrollBar().maximum())
+    def read_and_display_log(self):
+        try:
+            with open(self.log_file_path, "r", encoding="utf-8") as f:
+                log_content = f.read()
+                if not log_content:
+                    self.clear()
+                    self.last_read_position = 0
+                    return
+                f.seek(self.last_read_position)
+                log_content = f.read()
+                log_lines = log_content.splitlines()
+                for line in log_lines:
+                    if not self.is_collapsed:
+                        self.append(line)
+                        self.verticalScrollBar().setValue(self.verticalScrollBar().maximum())
+                self.last_read_position = f.tell()
+        except FileNotFoundError:
+            pass
+        except Exception as e:
+            print(f"Error reading log file: {e}")
 
     def toggle_collapse(self):
         self.animation = QPropertyAnimation(self, b"geometry")
@@ -173,10 +202,17 @@ class NekoLogWindow(QTextEdit):
         self.animation.start()
 
     def restore_log_content(self):
-        self.clear() # 清空当前显示
-        for message in self.log_history: # 从历史记录中恢复
-            self.append(message)
-        self.verticalScrollBar().setValue(self.verticalScrollBar().maximum())
+        try:
+            with open(self.log_file_path, "r", encoding="utf-8") as f:
+                log_content = f.read()
+                log_lines = log_content.splitlines()
+                for line in log_lines:
+                    self.append(line)
+                self.verticalScrollBar().setValue(self.verticalScrollBar().maximum())
+        except FileNotFoundError:
+            pass  # Handle the case where the log file doesn't exist
+        except Exception as e:
+            print(f"Error reading log file: {e}")
 
     def setRoundedCorners(self):
         from PyQt6.QtGui import QRegion
@@ -201,6 +237,3 @@ class NekoLogWindow(QTextEdit):
     def resizeEvent(self, event):
         super().resizeEvent(event)
         self.setRoundedCorners()
-
-    def clear_log(self):
-        self.clear()
