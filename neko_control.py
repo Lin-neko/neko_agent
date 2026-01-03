@@ -12,6 +12,9 @@ from gui.neko_pms_ctl import NekoPMS
 
 _APP = None
 
+def add_log(log_string):
+        with open("cache/log.txt", "a",encoding='utf-8') as f:
+            f.write(log_string)
 def get_display_scale_factor():
     user32 = ctypes.windll.user32
     desktop_window = user32.GetDesktopWindow()
@@ -48,7 +51,7 @@ class Controller:
         rect = win32gui.GetWindowRect(hwnd)
         win_x = int(x - rect[0])
         win_y = int(y - rect[1])
-        print(f"猫猫向窗口句柄 {hex(hwnd)} 发送点击消息 (相对坐标: {win_x}, {win_y})")
+        add_log(f"猫猫向窗口句柄 {hex(hwnd)} 发送点击消息 (相对坐标: {win_x}, {win_y})")
         
         try:
             script_path = os.path.join(os.path.dirname(__file__), "gui","neko_click_indicator.py")
@@ -102,7 +105,7 @@ class Controller:
             else:
                 vk = ord(char)
                 win32gui.PostMessage(hwnd, win32con.WM_CHAR, vk, 0)
-        print(f"尝试向{hwnd}发送{text}")
+        add_log(f"尝试向{hwnd}发送{text}")
     
     
     def drag(self, current_x, current_y, new_x, new_y):
@@ -120,8 +123,8 @@ class Controller:
         end_win_x = new_x - rect[0]
         end_win_y = new_y - rect[1]
 
-        print(f"向窗口句柄 {hex(hwnd)} 发送拖动消息")
-        print(f"起始相对坐标: ({start_win_x}, {start_win_y}) -> 目标相对坐标: ({end_win_x}, {end_win_y})")
+        add_log(f"向窗口句柄 {hex(hwnd)} 发送拖动消息")
+        add_log(f"起始相对坐标: ({start_win_x}, {start_win_y}) -> 目标相对坐标: ({end_win_x}, {end_win_y})")
 
         try:
             script_path = os.path.join(os.path.dirname(__file__), "gui","neko_move_indicator.py")
@@ -217,7 +220,7 @@ class Controller:
         time.sleep(0.3) #确保动画与操作同步
         
         win32api.PostMessage(hwnd, win32con.WM_MOUSEWHEEL, wParam, lParam)
-        print(f"已向窗口 '{hwnd}' 发送鼠标滚轮滚动消息 (滚动量: {scroll_amount})。")
+        add_log(f"已向窗口 '{hwnd}' 发送鼠标滚轮滚动消息 (滚动量: {scroll_amount})。")
     def exec(self,cmd):
         cmd_history = []
         exec_or_not = self.pms.cmd_exec_check(cmd)

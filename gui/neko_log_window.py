@@ -7,10 +7,6 @@ from PyQt6.QtCore import QTimer
 
 class NekoLogWindow(QTextEdit):
     def __init__(self, parent=None):
-        app = QApplication.instance()
-        if app is None:
-            app = QApplication(sys.argv)
-
         super().__init__(parent)
         self.original_geometry = QRect(int(QApplication.primaryScreen().geometry().width() * 0.9 - QApplication.primaryScreen().geometry().width() * 0.15 // 2),
                                        int(QApplication.primaryScreen().geometry().height() * 0.15),
@@ -76,8 +72,6 @@ class NekoLogWindow(QTextEdit):
         self.collapse_button.setIcon(QIcon(QPixmap("gui/img/log_expand.PNG")))
         self.collapse_button.setIconSize(self.collapse_button.size())
         self.collapse_button.clicked.connect(self.toggle_collapse)
-        self.show()
-        app.exec()
 
     def read_and_display_log(self):
         try:

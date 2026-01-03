@@ -65,6 +65,11 @@ class AgentParser:
             return handler(m), True
         return None, False
 
+
+    def add_log(self,log_string):
+        with open("cache/log.txt", "a",encoding='utf-8') as f:
+            f.write(log_string)
+
     def parse_and_execute(self, llm_output: str):
         if not llm_output:
             return None
@@ -110,7 +115,7 @@ class AgentParser:
     # ----------------- handlers -----------------
 
     def _do_msg(self, m: re.Match) -> Optional[str]:
-        print(m.group(1))
+        self.add_log(m.group(1))
         return None
 
     def _do_click(self, m: re.Match) -> Optional[str]:
