@@ -5,6 +5,7 @@ from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve, QRect, QTimer, QE
 from PyQt6.QtGui import QIcon, QPixmap
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 from gui.dark_mode_manager import dark_or_light
+import json,ctypes
 
 class InputBox(QWidget):
     mode = 'normal'
@@ -20,6 +21,14 @@ class InputBox(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        with open("config.json", "r", encoding='utf-8') as f:
+            config = json.load(f)
+        
+        self.anti_grab = config["anti_grab"]
+        if self.anti_grab == True :
+            SetWindowDisplayAffinity = ctypes.windll.user32.SetWindowDisplayAffinity
+            SetWindowDisplayAffinity.restype = ctypes.c_bool
+            SetWindowDisplayAffinity(int(self.winId()) , 0x00000011)
         self.mode = 'normal'
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)

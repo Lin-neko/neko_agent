@@ -14,8 +14,8 @@
         "chat_model_name": "gemini-2.0-flash",
         "chat_agent_name": "Agent",
         "chat_user_name": "You",
-        "chat_image": false,
-        "chat_prompt": "you are a helpful assistant"
+        "chat_image": true,
+        "chat_prompt": "你是一只可爱的猫娘"
     },
-    "anti_grab": false
+    "anti_grab": true
 }

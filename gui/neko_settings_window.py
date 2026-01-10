@@ -5,6 +5,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '.
 from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QLabel, QPushButton, QComboBox , QScrollArea, QCheckBox
 from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve, QRect, QEventLoop , QTimer
 from gui.dark_mode_manager import dark_or_light
+import json , ctypes
 
 class WheelEventComboBox(QComboBox):
     def __init__(self, parent=None):
@@ -16,6 +17,14 @@ class WheelEventComboBox(QComboBox):
 class NekoSettingsWindow(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
+        with open("config.json", "r", encoding='utf-8') as f:
+            config = json.load(f)
+        
+        self.anti_grab = config["anti_grab"]
+        if self.anti_grab == True :
+            SetWindowDisplayAffinity = ctypes.windll.user32.SetWindowDisplayAffinity
+            SetWindowDisplayAffinity.restype = ctypes.c_bool
+            SetWindowDisplayAffinity(int(self.winId()) , 0x00000011)
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool)
         self._result = None
         self._app = QApplication.instance() if QApplication.instance() else QApplication(sys.argv)

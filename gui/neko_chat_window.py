@@ -7,7 +7,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from gui.dark_mode_manager import dark_or_light
 import json
 import re
-
+import ctypes
 
 class TransparentWindow(QWidget):
     def __init__(self, parent=None):
@@ -20,9 +20,17 @@ class TransparentWindow(QWidget):
 
 class NekoChatWindow(QWidget):
     closed = pyqtSignal()
-
+    
     def __init__(self, parent=None):
         super().__init__(parent)
+        with open("config.json", "r", encoding='utf-8') as f:
+            config = json.load(f)
+        
+        self.anti_grab = config["anti_grab"]
+        if self.anti_grab == True :
+            SetWindowDisplayAffinity = ctypes.windll.user32.SetWindowDisplayAffinity
+            SetWindowDisplayAffinity.restype = ctypes.c_bool
+            SetWindowDisplayAffinity(int(self.winId()) , 0x00000011)
         self.animation = QPropertyAnimation(self, b"windowOpacity")
         self.animation.setDuration(200)  # 动画持续时间200毫秒
 

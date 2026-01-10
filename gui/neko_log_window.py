@@ -4,10 +4,20 @@ from PyQt6.QtGui import QIcon, QPixmap
 import sys
 import os
 from PyQt6.QtCore import QTimer
+import json
+import ctypes
 
 class NekoLogWindow(QTextEdit):
     def __init__(self, parent=None):
         super().__init__(parent)
+        with open("config.json", "r", encoding='utf-8') as f:
+            config = json.load(f)
+        
+        self.anti_grab = config["anti_grab"]
+        if self.anti_grab == True :
+            SetWindowDisplayAffinity = ctypes.windll.user32.SetWindowDisplayAffinity
+            SetWindowDisplayAffinity.restype = ctypes.c_bool
+            SetWindowDisplayAffinity(int(self.winId()) , 0x00000011)
         self.original_geometry = QRect(int(QApplication.primaryScreen().geometry().width() * 0.9 - QApplication.primaryScreen().geometry().width() * 0.15 // 2),
                                        int(QApplication.primaryScreen().geometry().height() * 0.15),
                                        int(QApplication.primaryScreen().geometry().width() * 0.15),
