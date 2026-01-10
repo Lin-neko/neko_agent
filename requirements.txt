@@ -3,3 +3,4 @@ pillow
 PyQt6
 pywin32
 wechat_ocr
+keyboard

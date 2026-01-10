@@ -117,7 +117,7 @@ class InputBox(QWidget):
 
     def _update_style_based_on_background(self):
         dark_mode = dark_or_light(self.x() + self.width() // 2 , self.y() + self.height() // 2)
-        if dark_mode == "Light" :
+        if dark_mode == "Dark" :
             text_color = "black"
             bg_color_input = "rgba(255, 255, 255, 240)"
             bg_color_button = "rgba(255, 255, 255, 240)"

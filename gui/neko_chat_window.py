@@ -1,9 +1,12 @@
 from PyQt6.QtWidgets import QWidget, QApplication, QPushButton, QTextEdit, QVBoxLayout
-from PyQt6.QtCore import Qt, QRect, pyqtSignal, QDateTime
+from PyQt6.QtCore import Qt, QRect, pyqtSignal, QDateTime, QPropertyAnimation
 from PyQt6.QtGui import QIcon, QPixmap, QRegion, QTextBlockFormat, QTextCursor, QTextCharFormat, QFont,QTextImageFormat
-from dark_mode_manager import dark_or_light
+import sys
 import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from gui.dark_mode_manager import dark_or_light
 import json
+import re
 
 
 class TransparentWindow(QWidget):
@@ -20,6 +23,9 @@ class NekoChatWindow(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.animation = QPropertyAnimation(self, b"windowOpacity")
+        self.animation.setDuration(200)  # 动画持续时间200毫秒
+
         with open("config.json", "r", encoding='utf-8') as f:
             config = json.load(f)
         self.user_name = config["chat_settings"]["chat_user_name"]
@@ -79,21 +85,10 @@ class NekoChatWindow(QWidget):
         """)
         self.setRoundedCorners()
 
-        self.exit_button = QPushButton("", self)
-        self.exit_button.setObjectName("exitButton")
-        self.exit_button.setGeometry(10, 10, 30, 30) 
-        self.exit_button.setStyleSheet(f"""
-            QPushButton#exitButton {{
-                background-color: transparent;
-                border-radius: 15px; 
-                border: none;
-            }}
-        """)
-        self.exit_button.clicked.connect(self.close_window)
 
         self.minimize_button = QPushButton("", self)
         self.minimize_button.setObjectName("minimizeButton")
-        self.minimize_button.setGeometry(50, 10, 30, 30)
+        self.minimize_button.setGeometry(10, 10, 30, 30)
         self.minimize_button.setStyleSheet(f"""
             QPushButton#minimizeButton {{
                 background-color: transparent;
@@ -107,90 +102,103 @@ class NekoChatWindow(QWidget):
 
         self._update_style_based_on_background()
 
-    def append_user_msg(self, message):
-        timestamp = QDateTime.currentDateTime().toString("hh:mm:ss")
-        avatar_path = os.path.join("gui", "img", "user_avatar.png")
-        
-        self.log_history.append({
-            'sender': 'user', 
-            'message': message, 
-            'timestamp': timestamp
-        })
-        
-        cursor = self.chat_display.textCursor()
-        cursor.movePosition(QTextCursor.MoveOperation.End)
-        
-        # 用户消息块格式（右对齐）
-        user_block_format = QTextBlockFormat()
-        user_block_format.setAlignment(Qt.AlignmentFlag.AlignRight)
-        user_block_format.setTopMargin(10)
-        user_block_format.setBottomMargin(10)
-        
-        # 用户消息字符格式
-        user_char_format = QTextCharFormat()
-        user_char_format.setFontWeight(QFont.Weight.Normal)
-        
-        cursor.setBlockFormat(user_block_format)
-        
-        # 处理多行消息
-        lines = message.split('\n')
-        for i, line in enumerate(lines):
-            cursor.insertText(f" {line} ")
-            if i < len(lines) - 1:
-                cursor.insertText("\n")  # 为多行消息添加换行
-        
-        # 添加时间戳
-        cursor.insertText(f"[{timestamp}]:{self.user_name} ")
-        
-        # 插入头像
-        if os.path.exists(avatar_path):
-            avatar_format = QTextImageFormat()
-            avatar_format.setWidth(20)
-            avatar_format.setHeight(20)
-            avatar_format.setName(avatar_path)
-            cursor.insertImage(avatar_format)
-        cursor.insertText("\n")
-        
-        self.chat_display.setTextCursor(cursor)
-        self.chat_display.ensureCursorVisible()
+        self.message_queue = []
+        self.user_message_read_position = 0
+        self.agent_message_read_position = 0
 
-    def append_agent_msg(self, message):
+        self.timer = self.startTimer(1000)  # 每隔1秒读取一次文件
+
+    def timerEvent(self, event):
+        if event.timerId() == self.timer:
+            self._read_and_append_messages()
+
+    def _read_and_append_messages(self):
+        self._read_user_messages()
+        self._read_agent_messages()
+
+    def _read_user_messages(self):
+        try:
+            with open(".\\cache\\user_message.txt", "r", encoding="utf-8") as f:
+                content = f.read()
+                new_messages = content[self.user_message_read_position:]
+                if new_messages:
+                    messages = re.split(r'\[message_end\]', new_messages)
+                    for message in messages:
+                        if message.strip():
+                            self._append_message(message, 'user')
+                    self.user_message_read_position = len(content)
+        except FileNotFoundError:
+            pass
+
+    def _read_agent_messages(self):
+        try:
+            with open(".\\cache\\agent_message.txt", "r", encoding="utf-8") as f:
+                content = f.read()
+                new_messages = content[self.agent_message_read_position:]
+                if new_messages:
+                    messages = re.split(r'\[message_end\]', new_messages)
+                    for message in messages:
+                        if message.strip():
+                            self._append_message(message, 'agent')
+                    self.agent_message_read_position = len(content)
+        except FileNotFoundError:
+            pass
+
+    def _append_message(self, message, sender):
         timestamp = QDateTime.currentDateTime().toString("hh:mm:ss")
-        avatar_path = os.path.join("gui", "img", "agent_avatar.JPG")
-        
+        if sender == 'user':
+            avatar_path = os.path.join("gui", "img", "user_avatar.png")
+            alignment = Qt.AlignmentFlag.AlignRight
+            name = self.user_name
+        else:
+            avatar_path = os.path.join("gui", "img", "agent_avatar.JPG")
+            alignment = Qt.AlignmentFlag.AlignLeft
+            name = self.agent_name
+
         self.log_history.append({
-            'sender': 'agent', 
-            'message': message, 
+            'sender': sender,
+            'message': message,
             'timestamp': timestamp
         })
-        
+
         cursor = self.chat_display.textCursor()
         cursor.movePosition(QTextCursor.MoveOperation.End)
-        
-        # Agent消息块格式（左对齐）
-        agent_block_format = QTextBlockFormat()
-        agent_block_format.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        agent_block_format.setTopMargin(10)
-        agent_block_format.setBottomMargin(10)
-        
-        cursor.setBlockFormat(agent_block_format)
-        
-        # 插入头像
-        if os.path.exists(avatar_path):
-            avatar_format = QTextImageFormat()
-            avatar_format.setWidth(20)
-            avatar_format.setHeight(20)
-            avatar_format.setName(avatar_path)
-            cursor.insertImage(avatar_format)
-        
-        # 插入带有时间戳的前缀
-        cursor.insertText(f" {self.agent_name} [{timestamp}]: ")
-        
-        # 使用 insertMarkdown 渲染 Markdown 格式
-        cursor.insertMarkdown(message)
-        
+
+        block_format = QTextBlockFormat()
+        block_format.setAlignment(alignment)
+        block_format.setTopMargin(10)
+        block_format.setBottomMargin(10)
+
+        cursor.setBlockFormat(block_format)
+
+        if sender == 'user':
+            lines = message.split('\n')
+            for i, line in enumerate(lines):
+                cursor.insertText(f" {line} ")
+                if i < len(lines) - 1:
+                    cursor.insertText("\n")  # 为多行消息添加换行
+
+            cursor.insertText(f"[{timestamp}]:{name} ")
+
+            if os.path.exists(avatar_path):
+                avatar_format = QTextImageFormat()
+                avatar_format.setWidth(20)
+                avatar_format.setHeight(20)
+                avatar_format.setName(avatar_path)
+                cursor.insertImage(avatar_format)
+        else:
+            if os.path.exists(avatar_path):
+                avatar_format = QTextImageFormat()
+                avatar_format.setWidth(20)
+                avatar_format.setHeight(20)
+                avatar_format.setName(avatar_path)
+                cursor.insertImage(avatar_format)
+
+            cursor.insertText(f" {name} [{timestamp}]: ")
+            cursor.insertMarkdown(message)
+
         cursor.insertText("\n")
-        
+
         self.chat_display.setTextCursor(cursor)
         self.chat_display.ensureCursorVisible()
 
@@ -202,7 +210,7 @@ class NekoChatWindow(QWidget):
         x = self.x() + self.width() // 2
         y = self.y() + self.height() // 2
         dark_mode = dark_or_light(x, y)
-        
+
         if dark_mode == "Light":
             # 浅色主题
             text_color = "#000000"
@@ -210,7 +218,6 @@ class NekoChatWindow(QWidget):
             border_color = "#cccccc"
             scrollbar_bg = "#f0f0f0"
             scrollbar_handle = "#c0c0c0"
-            self.exit_button.setIcon(QIcon(QPixmap("gui/img/close_light.png")))
             # 设置最小化按钮图标
             self.minimize_button.setIcon(QIcon(QPixmap("gui/img/minimize_light.png")))
         else:
@@ -220,7 +227,6 @@ class NekoChatWindow(QWidget):
             border_color = "#3e4452"
             scrollbar_bg = "#282c34"
             scrollbar_handle = "#4b5263"
-            self.exit_button.setIcon(QIcon(QPixmap("gui/img/close_dark.png")))
             # 设置最小化按钮图标
             self.minimize_button.setIcon(QIcon(QPixmap("gui/img/minimize_dark.png")))
 
@@ -256,8 +262,9 @@ class NekoChatWindow(QWidget):
                 background: none;
             }}
         """)
-        
 
+    def set_opacity(self, opacity):
+        self.setWindowOpacity(opacity)
 
     def setRoundedCorners(self):
         radius = 10
@@ -281,15 +288,19 @@ class NekoChatWindow(QWidget):
     def resizeEvent(self, event):
         super().resizeEvent(event)
         self.setRoundedCorners()
-        button_size = self.exit_button.width()
-        self.exit_button.setGeometry(10, 10, button_size, button_size)
 
     def close_window(self):
-        self.hide()
+        self.animation.setStartValue(1.0)
+        self.animation.setEndValue(0.0)
+        self.animation.finished.connect(self.hide)
+        self.animation.start()
         self.closed.emit()
 
     def minimize_window(self):
-        self.hide()
+        self.animation.setStartValue(1.0)
+        self.animation.setEndValue(0.0)
+        self.animation.finished.connect(self.hide)
+        self.animation.start()
         self.show_minimized_button()
 
     def show_minimized_button(self):
@@ -318,8 +329,16 @@ class NekoChatWindow(QWidget):
         self.show()
 
     def showEvent(self, event):
+        self.setWindowOpacity(0.0)
+        self.animation.setStartValue(0.0)
+        self.animation.setEndValue(1.0)
+        try:
+            self.animation.finished.disconnect()  # 移除之前的连接
+        except TypeError:
+            pass
         super().showEvent(event)
         self._update_style_based_on_background()
+        self.animation.start()
 
     def clear_log(self):
         self.chat_display.clear()

@@ -42,7 +42,9 @@ class NekoAgentKernel:
         cache_files = [
             '.\\cache\\cmd_history.txt',
             '.\\cache\\file_read.txt',
-            '.\\cache\\log.txt'
+            '.\\cache\\log.txt',
+            '.\\cache\\user_message.txt',
+            '.\\cache\\agent_message.txt'
         ]
         for file_path in cache_files:
             try:
@@ -57,6 +59,12 @@ class NekoAgentKernel:
     def add_log(self,log_string):
         with open("cache/log.txt", "a",encoding='utf-8') as f:
             f.write(log_string)
+    def add_user_msg(self,msg):
+        with open("cache/user_message.txt", "a",encoding='utf-8') as f:
+            f.write(msg + '[message_end]')
+    def add_agent_msg(self,msg):
+        with open("cache/agent_message.txt", "a",encoding='utf-8') as f:
+            f.write(msg + '[message_end]')
 
     def clear_ocr_cache(self):
         for item in self.actions_history:
@@ -160,6 +168,7 @@ class NekoAgentKernel:
         elif self.mode == "[chat]":
             if self.runtime == 2:
                 self.chat_history.append({"role": "user", "content": prompt})
+                self.add_user_msg(prompt)
                 if self.chat_image:
                     image64 = take_screenshot_safe()
                     self.chat_history.append({"role": "user",
@@ -171,6 +180,7 @@ class NekoAgentKernel:
                 if not chat :
                     return False
                 self.chat_history.append({"role": "user", "content": chat})
+                self.add_user_msg(chat)
                 if self.chat_image:
                     image64 = take_screenshot_safe()
                     self.chat_history.append({"role": "user","content": [{"type": "image_url","image_url": {"url": f"data:image/jpeg;base64,{image64}"}}]})
@@ -179,17 +189,24 @@ class NekoAgentKernel:
                     api_key=self.chat_api_key,
                     base_url=self.chat_base_url
                 )
-                response = chat_cli.chat.completions.create(
-                    model=self.chat_model_name,
-                    temperature=0.7,
-                    messages=self.chat_history
-                )
+                try :
+                    response = chat_cli.chat.completions.create(
+                        model=self.chat_model_name,
+                        temperature=0.7,
+                        messages=self.chat_history
+                    )
+                except Exception as e:
+                    self.add_log("e")
             else:
-                response = self.client.chat.completions.create(
-                    model=self.model_name,
-                    temperature=0.7,
-                    messages=self.chat_history
-                )
+                try :
+                    response = self.client.chat.completions.create(
+                        model=self.model_name,
+                        temperature=0.7,
+                        messages=self.chat_history
+                    )
+                except Exception as e:
+                    self.add_log("e")
+                
             self.chat_reply = response.choices[0].message.content
             self.chat_history.append({"role": "assistant", "content": self.chat_reply})
             result = "CHAT\n" + self.chat_reply
@@ -219,7 +236,6 @@ class NekoAgentKernel:
                 self.add_log('这是一个命令行任务\n')
             elif "[chat]" in agent_reply:
                 self.mode = "[chat]"
-                self.add_log('聊聊天\n')
                 # 创建锁文件
                 try:
                     with open(".\\cache\\chat_mode.lock", "w", encoding='utf-8') as f:
@@ -250,7 +266,7 @@ class NekoAgentKernel:
                     self.feedback = run_parser_safe(output)
                     
                     if "CHAT" in str(self.feedback):
-                        self.add_log(self.chat_reply)
+                        self.add_agent_msg(self.chat_reply)
                     if "Pause" in str(self.feedback):
                         return "PAUSE_REQUESTED"
                     if "ERROR_COMMAND" in str(self.feedback):

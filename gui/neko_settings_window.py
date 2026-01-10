@@ -1,9 +1,10 @@
 import sys
 import json
 import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QLabel, QPushButton, QComboBox , QScrollArea, QCheckBox
 from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve, QRect, QEventLoop , QTimer
-from dark_mode_manager import dark_or_light
+from gui.dark_mode_manager import dark_or_light
 
 class WheelEventComboBox(QComboBox):
     def __init__(self, parent=None):

@@ -13,9 +13,9 @@ def dark_or_light(x, y, threshold = 128):
     luminance = (0.299 * pixel_color[0] + 0.587 * pixel_color[1] + 0.114 * pixel_color[2])
     if dark_conf == "自动" :
         if luminance < threshold :
-            return "Light"
-        else :
             return "Dark"
+        else :
+            return "Light"
     elif dark_conf == "始终深色":
         return "Dark"
     else :
