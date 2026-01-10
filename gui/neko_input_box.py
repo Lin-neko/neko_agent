@@ -1,8 +1,10 @@
 import sys
+import os
 from PyQt6.QtWidgets import QApplication, QWidget, QLineEdit, QHBoxLayout, QPushButton, QGraphicsOpacityEffect
 from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve, QRect, QTimer, QEventLoop
-from PyQt6.QtGui import QIcon, QPixmap, QColor, QScreen
-from dark_mode_manager import dark_or_light
+from PyQt6.QtGui import QIcon, QPixmap
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+from gui.dark_mode_manager import dark_or_light
 
 class InputBox(QWidget):
     mode = 'normal'
@@ -22,7 +24,6 @@ class InputBox(QWidget):
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self._result = None
-        self._app = QApplication.instance() if QApplication.instance() else QApplication(sys.argv)
 
         self.main_layout = QHBoxLayout(self)
         self.main_layout.setContentsMargins(0, 0, 0, 0)

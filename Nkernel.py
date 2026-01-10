@@ -2,16 +2,21 @@ from openai import OpenAI
 import json
 from safe_screen import take_screenshot_safe , perform_ocr_safe
 from safe_parser import run_parser_safe
+from gui.launcher.input_box_launcher import start_input_box
 from time import sleep
 import subprocess
+import os
 
 class NekoAgentKernel:
     def __init__(self):
-        self.host = '127.0.0.1'
-        self.port = 17017
         self.runtime = 0
         self.feedback = ""
         self.mode = None
+        try:
+            if os.path.exists(".\\cache\\chat_mode.lock"):
+                os.remove(".\\cache\\chat_mode.lock")
+        except Exception as e:
+            self.add_log(f"删除锁文件失败: {str(e)}")
         with open("config.json", "r", encoding='utf-8') as f:
             self.config = json.load(f)
         self.ai_base_url = self.config["ai_settings"]["base_url"]
@@ -162,7 +167,9 @@ class NekoAgentKernel:
                         "image_url": {"url": f"data:image/jpeg;base64,{image64}"}}]})
 
             if self.runtime > 2:
-                chat = input("继续聊天:")
+                chat = start_input_box(1)
+                if not chat :
+                    return False
                 self.chat_history.append({"role": "user", "content": chat})
                 if self.chat_image:
                     image64 = take_screenshot_safe()
@@ -213,34 +220,48 @@ class NekoAgentKernel:
             elif "[chat]" in agent_reply:
                 self.mode = "[chat]"
                 self.add_log('聊聊天\n')
+                # 创建锁文件
+                try:
+                    with open(".\\cache\\chat_mode.lock", "w", encoding='utf-8') as f:
+                        f.write("chat_mode")
+                except Exception as e:
+                    self.add_log(f"创建锁文件失败: {str(e)}")
+            else:
+                try:
+                    if os.path.exists(".\\cache\\chat_mode.lock"):
+                        os.remove(".\\cache\\chat_mode.lock")
+                except Exception as e:
+                    self.add_log(f"删除锁文件失败: {str(e)}")
             return agent_reply
         except Exception as e:
             return f"主程序出错惹: {str(e)}"
 
 
     def main_loop(self, task):
-        print("main loop")
         while self.feedback != "TASK_COMPLETED":
             try:
                 self.runtime += 1
                 output = self.get_actions(task)
-                if "主程序出错惹:" in output:
-                    self.add_log(output)
-                    return False
+                if output:
+                    if "主程序出错惹:" in output:
+                        self.add_log(output)
+                        return False
+                        
+                    self.feedback = run_parser_safe(output)
                     
-                self.feedback = run_parser_safe(output)
-                
-                if "CHAT" in str(self.feedback):
-                    self.add_log(self.chat_reply)
-                if "Pause" in str(self.feedback):
-                    return "PAUSE_REQUESTED"
-                if "ERROR_COMMAND" in str(self.feedback):
-                    self.actions_history.append({
-                        "role": "user", 
-                        "content": [{"type": "text", "text": f"你输出的命令有错误{self.feedback},请严格按照规则重新输出"}]
-                    })
-                    self.add_log(f"出现错误命令{self.feedback}")
-                    
+                    if "CHAT" in str(self.feedback):
+                        self.add_log(self.chat_reply)
+                    if "Pause" in str(self.feedback):
+                        return "PAUSE_REQUESTED"
+                    if "ERROR_COMMAND" in str(self.feedback):
+                        self.actions_history.append({
+                            "role": "user", 
+                            "content": [{"type": "text", "text": f"你输出的命令有错误{self.feedback},请严格按照规则重新输出"}]
+                        })
+                        self.add_log(f"出现错误命令{self.feedback}")
+                    sleep(3)
+                else :
+                    return True
             except Exception as e:
                 self.add_log(f"发生异常: {str(e)}")
                 return False
