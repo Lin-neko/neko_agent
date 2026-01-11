@@ -53,7 +53,8 @@ def monitor_chat_mode(log_process):
         if os.path.exists(os.path.join("cache", "chat_mode.lock")):
             log_process.terminate()
             global chat_proc
-            chat_proc = launch_chat()
+            if not chat_proc:
+                chat_proc = launch_chat()
             break
 
 def main():
