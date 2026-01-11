@@ -15,9 +15,9 @@ class InputBox(QWidget):
 
     def update_placeholder_text(self):
         if self.mode == 'normal':
-            self.input_field.setPlaceholderText("给Neko下达任务吧~(回车发送,输入空内容或按左侧按键取消)")
+            self.input_field.setPlaceholderText("给Neko下达任务吧~(回车发送,输入空内容或按右侧按键取消)")
         elif self.mode == 'chat':
-            self.input_field.setPlaceholderText("发送信息(回车发送,输入空内容或按左侧按键取消)")
+            self.input_field.setPlaceholderText("发送信息(回车发送,输入空内容或按右侧按键取消)")
 
     def __init__(self, parent=None):
         super().__init__(parent)
