@@ -1,79 +1,58 @@
 ## 🐾 项目简介
 
-Neko Agent 是一个开源的基于人工智能的 Windows 操作自动化工具，它能够接收用户的自然语言，将复杂任务分解为一系列精确的、可执行的小步骤，并通过模拟操作来自动完成这些任务，不过目前这个项目只是一个demo，所有操作都在一个命令行窗口里进行，后续会用Pyqt构建一个图形界面的哈(。・ω・。)
+哈喽哈喽，我是Neko Agentο(=•ω＜=)ρ⌒☆ 是一个住在Windows里的人工智能小助手喵(≧ω≦) 
+我会努力听懂主人的话，帮主人做各种各样的事情哦！不仅可以陪主人聊天，还能分析屏幕上的内容，超厉害的说！
 
-特点：
+### ✨ Neko的优点
 
-- 可自定义的API
-- 自动解析llm指令并执行
-- 支持多种交互方式（点击、输入文本、执行命令等）
-- 自动分析任务场景并高效执行(图形界面任务/命令行任务)
+*   **可自定义的API**：主人可以根据自己的喜好配置Neko的openai API呀(。・ω・。)
+*   **自动解析llm指令并执行**：Neko可以自动理解主人的指令，然后乖乖执行的哦~
+*   **支持多种交互方式**：Neko可以点击、输入文本、执行命令，什么都会一点的ヾ(≧▽≦*)o
+*   **自动分析场景并高效执行**：不管是图形界面任务、命令行任务还是聊天，Neko都能~~轻松应对~~的说
+(小声说)Neko其实很依赖模型的...如果模型参数不高会很影响Neko的运行...并且在图形化任务中处理能力很弱〒▽〒
 
-## 🧠 工作原理
+### 🧠 Neko是怎么工作的呢？
 
-Neko Agent 的工作流程如下：
+1.  主人给Neko发送信息
+2.  Neko会认真分析信息类型，判断是否需要使用工具，或者进入聊天模式的哈
 
-1. 用户通过自然语言给Agent下达任务
-2. Agent 接收当前屏幕截图与屏幕OCR结果作为输入
-3. 利用 LLM 分析图像并制定行动计划
-4. 将计划转换成具体的操作指令（如点击坐标、输入文字等，如果要运行命令，统一需要用户同意，后续可能会添加自动批准执行）
-5. 执行动作并与用户交互反馈结果
-6. 循环上述过程直到任务完成
+### 🔧 怎么安装Neko呢？
 
-## 🔧 安装指南
-1. 克隆此仓库
-```cmd
-git clone https://github.com/Lin-neko/neko-agent.git
-```
-2. 创建虚拟环境
-```cmd
-python -m venv 虚拟环境名称
-```
-3. 激活虚拟环境并安装依赖
-```cmd
-.\虚拟环境名称\Scripts\activate
-pip install -r requirements.txt
-```
+1.  首先要克隆这个仓库(GUI版本)哦！
+    ```cmd
+    git clone -b gui_dev https://github.com/Lin-neko/neko_agent
+    ```
+2.  然后**直接运行**install.bat就可以啦(记得提前装好python哦)！
 
+### 📜 怎么使用Neko呢？
 
-## ⚙️ 配置说明
+运行start.bat就可以开始和Neko互动啦！启动后Neko会给主人使用指引的
 
-在使用前需要配置以下参数：
+### 🛠️ Neko可以使用的工具
 
-- **OpenAI API 密钥**：修改 `main.py` 中的 `api_key` 字段为你自己的密钥
-- **基础 URL**：根据实际使用的模型服务端点设置 `base_url`
-- **模型名称**：根据实际使用的模型名称设置 `model_name` ...反正还有很多
-- **视觉参数**：修改 `neko_vision.py` 里的网格线颜色，网格线粗度，格线划分，缩放倍率
+*   `exec "command"`：执行命令
+*   `popen "command"`：静默执行命令
+*   `file_read "path"`：读取文件
+*   `file_write "path"`：写入文件
+*   `click x y n`：点击屏幕上的某个位置n次
+*   `input "text" x y`：在屏幕上的某个位置输入文字
+*   `drag startX startY endX end Y`：拖动屏幕上的某个东西
+*   `scroll x y amount`：滚动屏幕
 
+### 📁 文件结构
 
-
-## 📜 使用方法
-
-运行主程序开始与 Neko Agent 互动：
-
-```cmd
-(venv)python main.py
-```
-
-启动后会提示你输入想要执行的任务,下达指令，随后程序会截取屏幕，并发送给 llm 进行分析和操作
-
-## 🛠️ Agent可以使用的工具
-
-| 功能 | 描述 |
-|------|------|
-| `click x,y` | 在指定坐标上单击鼠标左键 |
-| `input "text" x,y` | 向指定位置输入文本内容 |
-| `exec/popen "command"` | 请求执行 CMD 命令（需用户审核） |
-| `file_read "path_to_file"` | 读取文件（需用户审核） |
-| `file_write "path_to_file" "data"` | 向文件末尾追加数据（需用户审核）|
-| `drag x1,y1 x2,y2` | 从起点拖拽到终点 |
-
-
-## 📁文件结构
-
-- [main.py]是入口文件，控制整体逻辑流程。
-- [neko_vision.ScreenCapture] 负责屏幕捕获、OCR识别及图像预处理。
-- [neko_parser.AgentParser]解析并执行来自 AI 的指令。
-
-
-> 📌 提示：由于涉及敏感操作权限，在生产环境中部署时请注意安全防护措施！
+*   `config.json`：这里面保存着Neko的配置信息，比如API Key什么的哦~
+*   `default_callback.py`,`ocr_manager.py`: 这两个是WechatOCR的修改版组件
+*   `emergency_exit.py`：这个是紧急退出，如果Neko出问题了可以用它来退出的喵~
+*   `install.bat`：这个是安装Neko的批处理文件
+*   `main.py`：这个是Neko的主程序，运行它就可以启动Neko啦！
+*   `neko_control.py`：这个是Neko的控制模块，控制Neko的各种行为的说！
+*   `neko_parser.py`：这个是Neko的解析器，用于解析并调用Controller执行操作
+*   `neko_vision.py`：这个是Neko的眼睛，用来识别屏幕上的内容
+*   `Nkernel.py`：这个也是Neko的大脑
+*   `safe_parser.py`：这个是Neko的安全解析器，用来防止上下文污染,可能没什么用吧(～￣▽￣)～
+*   `safe_screen.py`：这个是Neko的安全屏幕操作模块，同样用来防止上下文污染
+*   `start.bat`：这个是启动Neko的批处理文件，双击它就可以启动Neko啦！
+*   `system_prompt.txt`：这里面保存着Neko的系统提示词~
+*   `gui/`：这个文件夹用来保存Neko的图形界面相关文件哦~
+*   `OCR/`：这个文件夹用来保存Neko的OCR引擎(使用WechatOCR)
